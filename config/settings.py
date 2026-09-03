@@ -150,6 +150,9 @@ if GOOGLE_CLIENT_SECRET in {'...', 'your-client-secret'}:
 GOOGLE_REDIRECT_URI = os.getenv('GOOGLE_REDIRECT_URI', f'{SITE_URL}/login/google/callback/')
 
 # Logging configuration
+LOG_DIR = BASE_DIR / 'logs'
+LOG_DIR.mkdir(exist_ok=True)
+
 LOGGING = {
     'version': 1,
     'disable_existing_loggers': False,
@@ -159,7 +162,7 @@ LOGGING = {
         },
         'file': {
             'class': 'logging.FileHandler',
-            'filename': BASE_DIR / 'logs' / 'sigma.log',
+            'filename': LOG_DIR / 'sigma.log',
         },
     },
     'loggers': {
