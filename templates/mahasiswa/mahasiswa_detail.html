@@ -1,0 +1,113 @@
+{% extends 'base.html' %}
+
+{% block title %}Detail Mahasiswa - {{ mahasiswa.user.get_full_name }}{% endblock %}
+
+{% block content %}
+<div class="mb-3">
+    <a href="{% url 'mahasiswa_list' %}" class="btn btn-sm btn-outline-secondary">
+        <i class="fa-solid fa-arrow-left me-1"></i> Kembali ke Daftar Mahasiswa
+    </a>
+</div>
+
+<div class="row g-4">
+    <div class="col-12 col-md-4">
+        <div class="card-custom p-4 text-center">
+            {% if mahasiswa.foto %}
+                <img src="{{ mahasiswa.foto.url }}" class="rounded-circle border mb-3" style="width: 120px; height: 120px; object-fit: cover;">
+            {% else %}
+                <div class="rounded-circle bg-primary bg-opacity-10 text-primary d-flex align-items-center justify-content-center fw-bold fs-1 mx-auto mb-3" style="width: 120px; height: 120px;">
+                    {{ mahasiswa.user.first_name|first|upper }}
+                </div>
+            {% endif %}
+            <h5 class="fw-bold mb-1">{{ mahasiswa.user.get_full_name }}</h5>
+            <p class="text-muted small mb-2">{{ mahasiswa.nim }} | {{ mahasiswa.prodi }}</p>
+            <span class="badge {% if mahasiswa.status == 'AKTIF' %}bg-success{% else %}bg-secondary{% endif %} px-3 py-2">
+                {{ mahasiswa.get_status_display }}
+            </span>
+            {% if user.is_admin %}
+                <div class="d-flex justify-content-center gap-2 mt-3">
+                    <a href="{% url 'mahasiswa_edit' mahasiswa.pk %}" class="btn btn-sm btn-outline-primary">
+                        <i class="fa-solid fa-pen me-1"></i> Edit
+                    </a>
+                    <form method="POST" action="{% url 'mahasiswa_delete' mahasiswa.pk %}" onsubmit="return confirm('Hapus data mahasiswa {{ mahasiswa.user.get_full_name|escapejs }}? Data terkait juga dapat ikut terhapus.');">
+                        {% csrf_token %}
+                        <button type="submit" class="btn btn-sm btn-outline-danger" title="Hapus mahasiswa" aria-label="Hapus mahasiswa {{ mahasiswa.user.get_full_name }}">
+                            <i class="fa-solid fa-trash me-1"></i> Hapus
+                        </button>
+                    </form>
+                </div>
+            {% endif %}
+
+            <hr class="my-3">
+            <div class="text-start small">
+                <div class="mb-2"><strong>Email:</strong> {{ mahasiswa.user.email }}</div>
+                <div class="mb-2"><strong>Nomor HP:</strong> {{ mahasiswa.no_hp|default:"-" }}</div>
+                <div class="mb-2"><strong>Kampus:</strong> {{ mahasiswa.kampus.nama_kampus|default:"-" }}</div>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-12 col-md-8">
+        <!-- MAGANG INFO CARD -->
+        <div class="card-custom p-4 mb-4">
+            <h6 class="fw-bold mb-3"><i class="fa-solid fa-briefcase text-primary me-2"></i> Informasi Magang BGTK</h6>
+            {% if magang %}
+                <div class="row g-3">
+                    <div class="col-sm-6">
+                        <div class="text-muted small">Bagian / Unit</div>
+                        <div class="fw-bold text-dark">{{ magang.bagian }}</div>
+                    </div>
+                    <div class="col-sm-6">
+                        <div class="text-muted small">Pembimbing BGTK</div>
+                        <div class="fw-bold text-primary">{{ magang.pembimbing.get_full_name|default:"Belum Ditetapkan" }}</div>
+                    </div>
+                    <div class="col-sm-6">
+                        <div class="text-muted small">Tanggal Mulai & Selesai</div>
+                        <div class="fw-semibold">{{ magang.tanggal_mulai }} s/d {{ magang.tanggal_selesai }}</div>
+                    </div>
+                    <div class="col-sm-6">
+                        <div class="text-muted small">Progress Magang</div>
+                        <div class="d-flex align-items-center gap-2 mt-1">
+                            <div class="progress flex-grow-1" style="height: 8px;">
+                                <div class="progress-bar bg-primary" role="progressbar" style="width: {{ magang.progress_percentage }}%;"></div>
+                            </div>
+                            <span class="small fw-bold">{{ magang.progress_percentage }}%</span>
+                        </div>
+                    </div>
+                </div>
+            {% else %}
+                <p class="text-muted small mb-0">Belum ada data penempatan magang.</p>
+            {% endif %}
+        </div>
+
+        <!-- RECENT ATTENDANCE -->
+        <div class="card-custom p-4">
+            <h6 class="fw-bold mb-3"><i class="fa-solid fa-calendar-check text-primary me-2"></i> Riwayat Absensi Terakhir</h6>
+            <div class="table-responsive">
+                <table class="table table-sm align-middle">
+                    <thead>
+                        <tr>
+                            <th>Tanggal</th>
+                            <th>Jam Masuk</th>
+                            <th>Jam Pulang</th>
+                            <th>Status</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for a in absensi_list %}
+                            <tr>
+                                <td>{{ a.tanggal }}</td>
+                                <td>{{ a.jam_masuk|default:"-" }}</td>
+                                <td>{{ a.jam_pulang|default:"-" }}</td>
+                                <td><span class="badge bg-success">{{ a.get_status_display }}</span></td>
+                            </tr>
+                        {% empty %}
+                            <tr><td colspan="4" class="text-center text-muted py-2">Belum ada catatan absensi.</td></tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

@@ -1,0 +1,121 @@
+{% extends 'base.html' %}
+
+{% block title %}Absensi Pulang - SIGMA BGTK Sumbar{% endblock %}
+
+{% block content %}
+<div class="row justify-content-center">
+    <div class="col-12 col-md-8 col-lg-6">
+        <div class="card-custom p-4 text-center">
+            <i class="fa-solid fa-right-from-bracket fa-3x text-warning mb-2"></i>
+            <h4 class="fw-bold mb-1">Absensi Pulang Digital</h4>
+            <p class="text-muted small">Tanggal: <strong>{{ today|date:"l, d F Y" }}</strong></p>
+
+            <div class="alert alert-light border text-start mb-4">
+                <div class="small">Absen Masuk Tercatat: <strong>{{ absensi.jam_masuk|default:"-" }}</strong></div>
+            </div>
+
+            <form method="POST" enctype="multipart/form-data" id="absenPulangForm">
+                {% csrf_token %}
+
+                <div class="mb-3 text-center">
+                    <label class="form-label fw-semibold">Foto Absen Pulang</label>
+                    <div class="bg-light border rounded-3 overflow-hidden position-relative mb-2" style="max-width: 100%; height: 260px;">
+                        <video id="webcamPulang" autoplay playsinline style="display: none; width: 100%; height: 100%; object-fit: cover; transform: none;"></video>
+                        <canvas id="canvasPulang" style="display: none; width: 100%; height: 100%;"></canvas>
+                        <img id="fotoPreviewPulang" alt="Pratinjau foto absen pulang" style="display: none; width: 100%; height: 100%; object-fit: cover;">
+                        <div id="cameraMessagePulang" class="h-100 d-flex align-items-center justify-content-center text-muted px-3">
+                            Kamera belum aktif. Klik "Ambil Foto Webcam" atau pilih file foto.
+                        </div>
+                    </div>
+
+                    <div class="d-flex justify-content-center gap-2 mb-2">
+                        <label for="fotoInputPulang" id="btnSnapPulang" class="btn btn-sm btn-outline-warning text-dark mb-0">
+                            <i class="fa-solid fa-camera me-1"></i> Buka Kamera HP
+                        </label>
+                        <button type="button" class="btn btn-sm btn-outline-secondary" id="btnRetakePulang" style="display: none;">
+                            <i class="fa-solid fa-rotate-left me-1"></i> Foto Ulang
+                        </button>
+                    </div>
+
+                    <div class="text-muted small mb-2">Atau upload file foto manual:</div>
+                    <input type="file" name="foto" id="fotoInputPulang" class="form-control form-control-sm" accept="image/*" capture="user" required>
+                </div>
+
+                <button type="submit" class="btn btn-warning text-dark w-100 py-2.5 fw-bold shadow-sm">
+                    <i class="fa-solid fa-check-double me-1"></i> SIMPAN ABSEN PULANG
+                </button>
+            </form>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    const videoPulang = document.getElementById('webcamPulang');
+    const canvasPulang = document.getElementById('canvasPulang');
+    const btnSnapPulang = document.getElementById('btnSnapPulang');
+    const btnRetakePulang = document.getElementById('btnRetakePulang');
+    const fotoInputPulang = document.getElementById('fotoInputPulang');
+    const cameraMessagePulang = document.getElementById('cameraMessagePulang');
+    const fotoPreviewPulang = document.getElementById('fotoPreviewPulang');
+
+    fotoInputPulang.addEventListener('change', function() {
+        const file = fotoInputPulang.files[0];
+        if (!file) return;
+        fotoPreviewPulang.src = URL.createObjectURL(file);
+        fotoPreviewPulang.style.display = 'block';
+        videoPulang.style.display = 'none';
+        canvasPulang.style.display = 'none';
+        cameraMessagePulang.style.display = 'none';
+    });
+
+    if (navigator.mediaDevices && navigator.mediaDevices.getUserMedia) {
+        if (!window.isSecureContext) {
+            cameraMessagePulang.textContent = 'Kamera laptop memerlukan HTTPS. Gunakan upload foto atau buka aplikasi melalui HTTPS.';
+        }
+        navigator.mediaDevices.getUserMedia({ video: true })
+            .then(function(stream) {
+                videoPulang.srcObject = stream;
+                videoPulang.style.display = 'block';
+                cameraMessagePulang.style.display = 'none';
+            })
+            .catch(function(err) {
+                console.log('Kamera pulang tidak dapat diakses:', err);
+                cameraMessagePulang.textContent = 'Kamera laptop tidak mendapat izin. Izinkan kamera browser atau gunakan upload foto.';
+            });
+    } else {
+        cameraMessagePulang.textContent = 'Gunakan tombol untuk mengambil atau memilih foto dari HP.';
+    }
+
+    btnSnapPulang.addEventListener('click', function(event) {
+        if (!videoPulang.videoWidth || !videoPulang.videoHeight) return;
+        event.preventDefault();
+        canvasPulang.width = videoPulang.videoWidth || 640;
+        canvasPulang.height = videoPulang.videoHeight || 480;
+        const contextPulang = canvasPulang.getContext('2d');
+        contextPulang.filter = 'brightness(1.35) contrast(1.05)';
+        contextPulang.drawImage(videoPulang, 0, 0, canvasPulang.width, canvasPulang.height);
+        canvasPulang.style.display = 'block';
+        videoPulang.style.display = 'none';
+        btnSnapPulang.style.display = 'none';
+        btnRetakePulang.style.display = 'inline-block';
+
+        canvasPulang.toBlob(function(blob) {
+            const file = new File([blob], 'foto_absen_pulang.jpg', { type: 'image/jpeg' });
+            const container = new DataTransfer();
+            container.items.add(file);
+            fotoInputPulang.files = container.files;
+            fotoPreviewPulang.src = URL.createObjectURL(file);
+            fotoPreviewPulang.style.display = 'block';
+        }, 'image/jpeg');
+    });
+
+    btnRetakePulang.addEventListener('click', function() {
+        canvasPulang.style.display = 'none';
+        videoPulang.style.display = 'block';
+        btnSnapPulang.style.display = 'inline-block';
+        btnRetakePulang.style.display = 'none';
+    });
+</script>
+{% endblock %}

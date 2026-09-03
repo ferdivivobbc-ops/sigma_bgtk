@@ -1,0 +1,123 @@
+{% extends 'base.html' %}
+
+{% block title %}Dashboard Pembimbing - SIGMA BGTK Sumbar{% endblock %}
+
+{% block content %}
+<div class="dashboard-hero mb-4">
+    <div class="hero-meta"><i class="fa-solid fa-compass me-1"></i> Ruang kerja pembimbing</div>
+    <h4 class="fw-bold mb-1 mt-2">Halo, {{ user.first_name|default:user.username }}.</h4>
+    <p class="small mb-0">Lihat progres mahasiswa, selesaikan verifikasi, dan beri arahan pada waktu yang tepat.</p>
+    <div class="small mt-3" style="color: #d7ece8;">BGTK Sumatera Barat · {{ user.get_full_name }}</div>
+</div>
+
+<!-- STATS CARDS -->
+<div class="section-label mb-2">Antrean pembimbingan</div>
+<div class="row g-3 mb-4">
+    <div class="col-12 col-sm-6 col-xl-3">
+        <div class="card-custom stat-card">
+            <div class="stat-icon bg-primary bg-opacity-10 text-primary">
+                <i class="fa-solid fa-users"></i>
+            </div>
+            <div>
+                <div class="text-muted small fw-semibold">Mahasiswa Bimbingan</div>
+                <h3 class="fw-bold mb-0">{{ total_bimbingan }}</h3>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-12 col-sm-6 col-xl-3">
+        <div class="card-custom stat-card">
+            <div class="stat-icon bg-success bg-opacity-10 text-success">
+                <i class="fa-solid fa-calendar-check"></i>
+            </div>
+            <div>
+                <div class="text-muted small fw-semibold">Hadir Hari Ini</div>
+                <h3 class="fw-bold mb-0">{{ hadir_hari_ini }}</h3>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-12 col-sm-6 col-xl-3">
+        <div class="card-custom stat-card">
+            <div class="stat-icon bg-warning bg-opacity-10 text-warning">
+                <i class="fa-solid fa-hourglass-half"></i>
+            </div>
+            <div>
+                <div class="text-muted small fw-semibold">Menunggu Verifikasi</div>
+                <h3 class="fw-bold mb-0">{{ unverified_kegiatan }}</h3>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-12 col-sm-6 col-xl-3">
+        <div class="card-custom stat-card">
+            <div class="stat-icon bg-info bg-opacity-10 text-info">
+                <i class="fa-solid fa-file-circle-check"></i>
+            </div>
+            <div>
+                <div class="text-muted small fw-semibold">Laporan Menunggu</div>
+                <h3 class="fw-bold mb-0">{{ pending_laporan }}</h3>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- TABLE MAHASISWA BIMBINGAN -->
+<div class="section-label mb-2">Mahasiswa dalam bimbingan</div>
+<div class="card-custom p-4">
+    <div class="d-flex justify-content-between align-items-center mb-3">
+        <h6 class="fw-bold mb-0"><i class="fa-solid fa-list-check text-primary me-2"></i> Daftar Mahasiswa Bimbingan</h6>
+        <a href="{% url 'kegiatan_list' %}?status=MENUNGGU" class="btn btn-sm btn-outline-warning">
+            <i class="fa-solid fa-check-to-slot me-1"></i> Verifikasi Jurnal ({{ unverified_kegiatan }})
+        </a>
+    </div>
+
+    <div class="table-responsive">
+        <table class="table table-hover align-middle">
+            <thead class="table-light">
+                <tr>
+                    <th>Mahasiswa</th>
+                    <th>NIM / Prodi</th>
+                    <th>Kampus</th>
+                    <th>Bagian BGTK</th>
+                    <th>Progress Magang</th>
+                    <th>Aksi</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for mg in bimbingan_list %}
+                    <tr>
+                        <td>
+                            <div class="fw-bold text-dark">{{ mg.mahasiswa.user.get_full_name }}</div>
+                            <small class="text-muted">{{ mg.mahasiswa.user.email }}</small>
+                        </td>
+                        <td>
+                            <div>{{ mg.mahasiswa.nim }}</div>
+                            <small class="text-muted">{{ mg.mahasiswa.prodi }}</small>
+                        </td>
+                        <td>{{ mg.mahasiswa.kampus.nama_kampus|default:"-" }}</td>
+                        <td><span class="badge bg-light text-dark border">{{ mg.bagian }}</span></td>
+                        <td style="width: 180px;">
+                            <div class="d-flex align-items-center gap-2">
+                                <div class="progress flex-grow-1" style="height: 8px;">
+                                    <div class="progress-bar bg-primary" role="progressbar" style="width: {{ mg.progress_percentage }}%;"></div>
+                                </div>
+                                <span class="small fw-semibold">{{ mg.progress_percentage }}%</span>
+                            </div>
+                        </td>
+                        <td>
+                            <a href="{% url 'mahasiswa_detail' mg.mahasiswa.pk %}" class="btn btn-xs btn-sm btn-outline-primary">
+                                <i class="fa-solid fa-eye"></i> Detail
+                            </a>
+                        </td>
+                    </tr>
+                {% empty %}
+                    <tr>
+                        <td colspan="6" class="text-center text-muted py-4">Belum ada mahasiswa yang dibimbing.</td>
+                    </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+{% endblock %}

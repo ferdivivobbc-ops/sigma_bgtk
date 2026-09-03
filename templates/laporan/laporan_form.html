@@ -1,0 +1,93 @@
+{% extends 'base.html' %}
+
+{% block title %}Edit Draft Laporan Akhir{% endblock %}
+
+{% block content %}
+<div class="row justify-content-center">
+    <div class="col-12 col-md-10">
+        <div class="card-custom p-4">
+            <h5 class="fw-bold mb-3"><i class="fa-solid fa-pen-to-square text-primary me-2"></i> Edit Draft Laporan Akhir Magang</h5>
+            <form method="POST" enctype="multipart/form-data">
+                {% csrf_token %}
+                <div class="mb-3">
+                    <label class="form-label fw-semibold">Judul Laporan Akhir <span class="text-danger">*</span></label>
+                    <input type="text" name="judul" class="form-control" value="{{ laporan.judul }}" required>
+                </div>
+
+                <div class="mb-3">
+                    <label class="form-label fw-semibold">Kata Pengantar</label>
+                    <textarea name="kata_pengantar" class="form-control" rows="4">{{ laporan.kata_pengantar }}</textarea>
+                </div>
+
+                <h6 class="fw-bold text-primary mt-4 mb-2">BAB I – PENDAHULUAN</h6>
+                <div class="mb-3">
+                    <label class="form-label fw-semibold">Latar Belakang</label>
+                    <textarea name="latar_belakang" class="form-control" rows="4">{{ laporan.latar_belakang }}</textarea>
+                </div>
+                <div class="mb-3">
+                    <label class="form-label fw-semibold">Tujuan Magang</label>
+                    <textarea name="tujuan" class="form-control" rows="3">{{ laporan.tujuan }}</textarea>
+                </div>
+                <div class="mb-3">
+                    <label class="form-label fw-semibold">Manfaat Magang</label>
+                    <textarea name="manfaat" class="form-control" rows="3">{{ laporan.manfaat }}</textarea>
+                </div>
+
+                <h6 class="fw-bold text-primary mt-4 mb-2">BAB II – GAMBARAN UMUM</h6>
+                <div class="mb-3">
+                    <textarea name="gambaran_umum" class="form-control" rows="4">{{ laporan.gambaran_umum }}</textarea>
+                </div>
+
+                <h6 class="fw-bold text-primary mt-4 mb-2">BAB III – PELAKSANAAN MAGANG</h6>
+                <div class="mb-3">
+                    <textarea name="pelaksanaan_magang" class="form-control" rows="4">{{ laporan.pelaksanaan_magang }}</textarea>
+                </div>
+
+                <h6 class="fw-bold text-primary mt-4 mb-2">BAB IV – HASIL DAN PEMBAHASAN</h6>
+                <div class="mb-3">
+                    <textarea name="hasil_pembahasan" class="form-control" rows="4">{{ laporan.hasil_pembahasan }}</textarea>
+                </div>
+
+                <h6 class="fw-bold text-primary mt-4 mb-2">BAB V – PENUTUP</h6>
+                <div class="mb-3">
+                    <label class="form-label fw-semibold">Kesimpulan</label>
+                    <textarea name="kesimpulan" class="form-control" rows="3">{{ laporan.kesimpulan }}</textarea>
+                </div>
+                <div class="mb-4">
+                    <label class="form-label fw-semibold">Saran</label>
+                    <textarea name="saran" class="form-control" rows="3">{{ laporan.saran }}</textarea>
+                </div>
+
+                <div class="p-3 mb-4 bg-light border rounded">
+                    <h6 class="fw-bold mb-1"><i class="fa-solid fa-paperclip text-primary me-2"></i>Upload Lampiran</h6>
+                    <p class="text-muted small mb-3">Opsional. Format PDF atau Word, maksimal 10 MB per file.</p>
+                    <div class="row g-3">
+                        <div class="col-md-6">
+                            <label class="form-label fw-semibold">File PDF</label>
+                            <input type="file" name="file_pdf" class="form-control" accept=".pdf,application/pdf">
+                            {% if laporan.file_pdf %}<div class="form-text"><i class="fa-solid fa-check text-success me-1"></i>File PDF sudah tersedia.</div>{% endif %}
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label fw-semibold">File Word</label>
+                            <input type="file" name="file_word" class="form-control" accept=".doc,.docx,application/msword,application/vnd.openxmlformats-officedocument.wordprocessingml.document">
+                            {% if laporan.file_word %}<div class="form-text"><i class="fa-solid fa-check text-success me-1"></i>File Word sudah tersedia.</div>{% endif %}
+                        </div>
+                    </div>
+                </div>
+
+                <div class="d-flex justify-content-between gap-2">
+                    <a href="{% url 'laporan_detail_pk' laporan.pk %}" class="btn btn-secondary">Batal</a>
+                    <div class="d-flex gap-2">
+                        <button type="submit" name="save_draft" value="1" class="btn btn-outline-primary">
+                            <i class="fa-solid fa-floppy-disk me-1"></i> Simpan Sebagai Draft
+                        </button>
+                        <button type="submit" name="submit_approval" value="1" class="btn btn-success">
+                            <i class="fa-solid fa-paper-plane me-1"></i> Ajukan Ke Pembimbing
+                        </button>
+                    </div>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+{% endblock %}

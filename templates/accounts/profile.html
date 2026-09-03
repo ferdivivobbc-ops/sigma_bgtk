@@ -1,0 +1,55 @@
+{% extends 'base.html' %}
+
+{% block title %}Profil Saya - SIGMA BGTK Sumbar{% endblock %}
+
+{% block content %}
+<div class="row justify-content-center">
+    <div class="col-12 col-md-8">
+        <div class="card-custom p-4">
+            <h5 class="fw-bold mb-3"><i class="fa-solid fa-user-gear text-primary me-2"></i> Pengaturan Profil Pengguna</h5>
+
+            <form method="POST" enctype="multipart/form-data">
+                {% csrf_token %}
+                <div class="row g-3 mb-3">
+                    <div class="col-md-6">
+                        <label class="form-label fw-semibold">Nama Depan</label>
+                        <input type="text" name="first_name" class="form-control" value="{{ user.first_name }}">
+                    </div>
+                    <div class="col-md-6">
+                        <label class="form-label fw-semibold">Nama Belakang</label>
+                        <input type="text" name="last_name" class="form-control" value="{{ user.last_name }}">
+                    </div>
+                </div>
+
+                <div class="row g-3 mb-3">
+                    <div class="col-md-6">
+                        <label class="form-label fw-semibold">Email</label>
+                        <input type="email" name="email" class="form-control" value="{{ user.email }}">
+                    </div>
+                    <div class="col-md-6">
+                        <label class="form-label fw-semibold">Nomor Telepon / WhatsApp</label>
+                        <input type="text" name="no_hp" class="form-control" value="{{ user.no_hp|default:'' }}">
+                    </div>
+                </div>
+
+                {% if mahasiswa %}
+                    <div class="mb-3">
+                        <label class="form-label fw-semibold">Program Studi</label>
+                        <input type="text" name="prodi" class="form-control" value="{{ mahasiswa.prodi }}">
+                    </div>
+                    <div class="mb-4">
+                        <label class="form-label fw-semibold">Ubah Foto Profile</label>
+                        <input type="file" name="foto" class="form-control" accept="image/*">
+                    </div>
+                {% endif %}
+
+                <div class="d-flex justify-content-end gap-2">
+                    <a href="{% url 'dashboard' %}" class="btn btn-secondary">Kembali</a>
+                    <a href="{% url 'password_change' %}" class="btn btn-outline-warning">Ganti Password</a>
+                    <button type="submit" class="btn btn-primary"><i class="fa-solid fa-floppy-disk me-1"></i> Simpan Perubahan</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+{% endblock %}

@@ -1,0 +1,14 @@
+{% extends 'base.html' %}
+
+{% block title %}Import Mahasiswa - SIGMA BGTK Sumbar{% endblock %}
+
+{% block content %}
+<div class="row justify-content-center"><div class="col-12 col-md-8"><div class="card-custom p-4">
+    <h5 class="fw-bold mb-2"><i class="fa-solid fa-file-arrow-up text-primary me-2"></i> Import Mahasiswa dari Excel</h5>
+    <p class="text-muted small mb-4">Gunakan file .xlsx dengan header: <strong>nama, email, nim, prodi, kampus, no_hp</strong>. Kolom no_hp opsional.</p>
+    <form method="POST" enctype="multipart/form-data">{% csrf_token %}
+        <div class="mb-4"><label class="form-label fw-semibold">File Excel</label><input type="file" name="file_excel" class="form-control" accept=".xlsx" required><div class="form-text">Maksimal 10 MB. Password awal mahasiswa: mahasiswa123.</div></div>
+        <div class="d-flex justify-content-end gap-2"><a href="{% url 'mahasiswa_list' %}" class="btn btn-secondary">Batal</a><button type="submit" class="btn btn-primary"><i class="fa-solid fa-upload me-1"></i> Mulai Import</button></div>
+    </form>
+</div></div></div>
+{% endblock %}

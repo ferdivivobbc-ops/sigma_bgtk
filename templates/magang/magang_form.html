@@ -1,0 +1,74 @@
+{% extends 'base.html' %}
+
+{% block title %}{{ action }} Data Penempatan Magang{% endblock %}
+
+{% block content %}
+<div class="row justify-content-center">
+    <div class="col-12 col-md-8">
+        <div class="card-custom p-4">
+            <h5 class="fw-bold mb-3">{{ action }} Data Penempatan Magang</h5>
+            <form method="POST">
+                {% csrf_token %}
+                {% if action == 'Tambah' %}
+                    <div class="mb-3">
+                        <label class="form-label fw-semibold">Pilih Mahasiswa <span class="text-danger">*</span></label>
+                        <select name="mahasiswa" class="form-select" required>
+                            <option value="">-- Pilih Mahasiswa --</option>
+                            {% for m in mahasiswa_list %}
+                                <option value="{{ m.pk }}">{{ m.user.get_full_name }} ({{ m.nim }} - {{ m.kampus.nama_kampus }})</option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                {% else %}
+                    <div class="mb-3">
+                        <label class="form-label fw-semibold">Mahasiswa</label>
+                        <input type="text" class="form-control" value="{{ magang.mahasiswa.user.get_full_name }} ({{ magang.mahasiswa.nim }})" readonly>
+                    </div>
+                {% endif %}
+
+                <div class="mb-3">
+                    <label class="form-label fw-semibold">Bagian / Unit BGTK Sumatera Barat <span class="text-danger">*</span></label>
+                    <input type="text" name="bagian" class="form-control" value="{{ magang.bagian|default:'' }}" required placeholder="Contoh: Subbagian Tata Usaha & IT Support">
+                </div>
+
+                <div class="row g-3 mb-3">
+                    <div class="col-md-6">
+                        <label class="form-label fw-semibold">Tanggal Mulai Magang <span class="text-danger">*</span></label>
+                        <input type="date" name="tanggal_mulai" class="form-control" value="{{ magang.tanggal_mulai|date:'Y-m-d'|default:'' }}" required>
+                    </div>
+                    <div class="col-md-6">
+                        <label class="form-label fw-semibold">Tanggal Selesai Magang <span class="text-danger">*</span></label>
+                        <input type="date" name="tanggal_selesai" class="form-control" value="{{ magang.tanggal_selesai|date:'Y-m-d'|default:'' }}" required>
+                    </div>
+                </div>
+
+                <div class="row g-3 mb-4">
+                    <div class="col-md-6">
+                        <label class="form-label fw-semibold">Pembimbing BGTK</label>
+                        <select name="pembimbing" class="form-select">
+                            <option value="">-- Pilih Pembimbing BGTK --</option>
+                            {% for p in pembimbing_list %}
+                                <option value="{{ p.pk }}" {% if magang.pembimbing_id == p.pk %}selected{% endif %}>{{ p.get_full_name }}</option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                    <div class="col-md-6">
+                        <label class="form-label fw-semibold">Status Magang</label>
+                        <select name="status" class="form-select">
+                            <option value="BELUM_MULAI" {% if magang.status == 'BELUM_MULAI' %}selected{% endif %}>Belum Mulai</option>
+                            <option value="AKTIF" {% if magang.status == 'AKTIF' or not magang %}selected{% endif %}>Aktif</option>
+                            <option value="SELESAI" {% if magang.status == 'SELESAI' %}selected{% endif %}>Selesai</option>
+                            <option value="DIBATALKAN" {% if magang.status == 'DIBATALKAN' %}selected{% endif %}>Dibatalkan</option>
+                        </select>
+                    </div>
+                </div>
+
+                <div class="d-flex justify-content-end gap-2">
+                    <a href="{% url 'magang_list' %}" class="btn btn-secondary">Batal</a>
+                    <button type="submit" class="btn btn-primary"><i class="fa-solid fa-floppy-disk me-1"></i> Simpan Penempatan</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+{% endblock %}

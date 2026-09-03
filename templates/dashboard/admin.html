@@ -1,0 +1,143 @@
+{% extends 'base.html' %}
+
+{% block title %}Dashboard Admin - SIGMA BGTK Sumbar{% endblock %}
+
+{% block content %}
+<div class="dashboard-hero mb-4">
+    <div class="hero-meta"><i class="fa-solid fa-compass me-1"></i> Pusat kendali magang</div>
+    <h4 class="fw-bold mb-1 mt-2">Selamat datang, Admin.</h4>
+    <p class="small mb-0">Pantau mahasiswa, kehadiran, dan pekerjaan yang perlu ditindaklanjuti.</p>
+    <div class="small mt-3" style="color: #d7ece8;">{{ today|date:"l, d F Y" }} · BGTK Sumatera Barat</div>
+</div>
+
+<!-- STATS CARDS -->
+<div class="section-label mb-2">Ringkasan hari ini</div>
+<div class="row g-3 mb-4">
+    <div class="col-12 col-sm-6 col-xl-3">
+        <div class="card-custom stat-card">
+            <div class="stat-icon bg-primary bg-opacity-10 text-primary">
+                <i class="fa-solid fa-user-graduate"></i>
+            </div>
+            <div>
+                <div class="text-muted small fw-semibold">Mahasiswa Aktif</div>
+                <h3 class="fw-bold mb-0">{{ total_mahasiswa_aktif }}</h3>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-12 col-sm-6 col-xl-3">
+        <div class="card-custom stat-card">
+            <div class="stat-icon bg-warning bg-opacity-10 text-warning">
+                <i class="fa-solid fa-user-tie"></i>
+            </div>
+            <div>
+                <div class="text-muted small fw-semibold">Total Pembimbing</div>
+                <h3 class="fw-bold mb-0">{{ total_pembimbing }}</h3>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-12 col-sm-6 col-xl-3">
+        <div class="card-custom stat-card">
+            <div class="stat-icon bg-success bg-opacity-10 text-success">
+                <i class="fa-solid fa-university"></i>
+            </div>
+            <div>
+                <div class="text-muted small fw-semibold">Kampus Asal</div>
+                <h3 class="fw-bold mb-0">{{ total_kampus }}</h3>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-12 col-sm-6 col-xl-3">
+        <div class="card-custom stat-card">
+            <div class="stat-icon bg-info bg-opacity-10 text-info">
+                <i class="fa-solid fa-calendar-check"></i>
+            </div>
+            <div>
+                <div class="text-muted small fw-semibold">Hadir Hari Ini</div>
+                <h3 class="fw-bold mb-0">{{ hadir_hari_ini }}</h3>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- CHARTS & RECENT ACTIVITIES -->
+<div class="row g-4">
+    <div class="col-12 col-lg-7">
+        <div class="card-custom p-4">
+            <div class="d-flex justify-content-between align-items-center mb-3">
+                <div><div class="section-label mb-1">Asal mahasiswa</div><h6 class="fw-bold mb-0"><i class="fa-solid fa-chart-pie text-primary me-2"></i> Sebaran Per Kampus</h6></div>
+            </div>
+            <canvas id="campusChart" height="220"></canvas>
+        </div>
+    </div>
+
+    <div class="col-12 col-lg-5">
+        <div class="card-custom p-4">
+            <div class="section-label mb-1">Perlu perhatian</div>
+            <h6 class="fw-bold mb-3"><i class="fa-solid fa-clock-rotate-left text-primary me-2"></i> Aktivitas Terbaru</h6>
+            <div class="list-group list-group-flush">
+                {% for act in recent_activities %}
+                    <div class="list-group-item px-0 py-2 border-bottom">
+                        <div class="d-flex justify-content-between align-items-center">
+                            <span class="fw-semibold text-dark small">{{ act.mahasiswa.user.get_full_name }}</span>
+                            <span class="badge {% if act.status_verifikasi == 'DISETUJUI' %}bg-success{% elif act.status_verifikasi == 'PERLU_REVISI' %}bg-warning text-dark{% else %}bg-secondary{% endif %} px-2 py-1" style="font-size: 0.65rem;">
+                                {{ act.get_status_verifikasi_display }}
+                            </span>
+                        </div>
+                        <p class="mb-0 text-muted small text-truncate" style="max-width: 280px;">{{ act.judul_kegiatan }}</p>
+                        <small class="text-muted" style="font-size: 0.7rem;">{{ act.tanggal }}</small>
+                    </div>
+                {% empty %}
+                    <div class="text-muted small text-center py-3">Belum ada aktivitas tercatat.</div>
+                {% endfor %}
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    const campusData = {{ kampus_chart|safe }};
+    const labels = campusData.map(item => item.nama_kampus);
+    const dataValues = campusData.map(item => item.total_mhs);
+
+    const ctx = document.getElementById('campusChart').getContext('2d');
+    new Chart(ctx, {
+            type: 'doughnut',
+        data: {
+            labels: labels,
+            datasets: [{
+                label: 'Jumlah Mahasiswa',
+                data: dataValues,
+                    backgroundColor: [
+                        '#0f766e', '#f6c453', '#3b82f6', '#e76f51', '#7c3aed',
+                        '#14b8a6', '#f97316', '#2563eb', '#84cc16', '#db2777',
+                        '#0891b2', '#a855f7', '#d97706', '#16a34a', '#dc2626',
+                        '#64748b', '#06b6d4', '#ca8a04', '#059669', '#be123c'
+                    ],
+                    borderColor: '#ffffff',
+                    borderWidth: 3,
+                    hoverOffset: 8
+            }]
+        },
+        options: {
+            responsive: true,
+                cutout: '58%',
+                plugins: {
+                    legend: {
+                        position: 'right',
+                        labels: { usePointStyle: true, padding: 14, boxWidth: 10 }
+                    },
+                    tooltip: {
+                        callbacks: {
+                            label: context => ` ${context.label}: ${context.parsed} mahasiswa`
+                        }
+                    }
+                }
+        }
+    });
+</script>
+{% endblock %}

@@ -1,0 +1,52 @@
+{% extends 'base.html' %}
+
+{% block title %}Tambah Mahasiswa Bimbingan{% endblock %}
+
+{% block content %}
+<div class="row justify-content-center">
+    <div class="col-12 col-lg-8">
+        <div class="card-custom p-4">
+            <div class="d-flex justify-content-between align-items-start gap-3 mb-3">
+                <div>
+                    <h5 class="fw-bold mb-1">Tambah Mahasiswa Bimbingan</h5>
+                    <p class="text-muted small mb-0">Cari berdasarkan nama, NPM, atau kampus, lalu pilih mahasiswa.</p>
+                </div>
+                <i class="fa-solid fa-user-plus text-primary fs-4"></i>
+            </div>
+
+            <form method="GET" class="input-group mb-4">
+                <input type="search" name="q" class="form-control" value="{{ search_query }}" placeholder="Cari nama, NPM, atau kampus..." autofocus>
+                <button type="submit" class="btn btn-primary"><i class="fa-solid fa-magnifying-glass me-1"></i> Cari</button>
+            </form>
+
+            {% if search_query %}
+                <div class="list-group">
+                    {% for m in mahasiswa_search %}
+                        <div class="list-group-item d-flex justify-content-between align-items-center gap-3">
+                            <div>
+                                <div class="fw-semibold">{{ m.user.get_full_name }}</div>
+                                <small class="text-muted">NPM: {{ m.nim }}{% if m.kampus %} · {{ m.kampus.nama_kampus }}{% endif %}</small>
+                            </div>
+                            <form method="POST" class="flex-shrink-0">
+                                {% csrf_token %}
+                                <input type="hidden" name="mahasiswa_id" value="{{ m.pk }}">
+                                <button type="submit" class="btn btn-sm btn-outline-primary" onclick="return confirm('Tambahkan mahasiswa ini ke bimbingan Anda?');">
+                                    <i class="fa-solid fa-user-plus me-1"></i> Tambahkan
+                                </button>
+                            </form>
+                        </div>
+                    {% empty %}
+                        <div class="text-center text-muted py-4">Data mahasiswa dari database admin tidak ditemukan.</div>
+                    {% endfor %}
+                </div>
+            {% else %}
+                <div class="text-center text-muted py-4">Masukkan nama atau NPM untuk mulai mencari.</div>
+            {% endif %}
+
+            <div class="text-end mt-4">
+                <a href="{% url 'mahasiswa_list' %}" class="btn btn-secondary">Kembali</a>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

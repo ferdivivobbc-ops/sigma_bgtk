@@ -1,0 +1,489 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% block title %}SIGMA - Sistem Informasi Magang BGTK Sumatera Barat{% endblock %}</title>
+    <!-- Bootstrap 5 CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+    <!-- Font Awesome 6 Icons -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fortawesome/fontawesome-free@6.5.2/css/all.min.css">
+    <!-- Google Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=Space+Grotesk:wght@500;600;700&display=swap" rel="stylesheet">
+    <!-- Chart.js -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+    <style>
+        :root {
+            --sidebar-width: 260px;
+            --primary-color: #0d6b66;
+            --primary-accent: #e9a23b;
+            --dark-bg: #17232d;
+            --light-bg: #f2f5f4;
+            --border-color: #d9e2ec;
+            --ink-color: #172b3a;
+            --muted-color: #627d98;
+        }
+
+        body {
+            font-family: 'DM Sans', sans-serif;
+            background: #f2f5f4;
+            color: #334e68;
+            min-height: 100vh;
+            position: relative;
+        }
+
+        body::before {
+            content: '';
+            position: fixed;
+            inset: 0;
+            background: url('/static/images/tutwuri-handayani.png') center 55% / min(42vw, 420px) auto no-repeat;
+            opacity: 0.07;
+            pointer-events: none;
+            z-index: 0;
+        }
+
+        h1, h2, h3, h4, h5, h6, .sidebar-brand-text .title {
+            font-family: 'Space Grotesk', sans-serif;
+            color: var(--ink-color);
+        }
+
+        /* Sidebar Styling */
+        .sidebar {
+            width: var(--sidebar-width);
+            position: fixed;
+            top: 0;
+            left: 0;
+            bottom: 0;
+            background: #17232d;
+            color: #fff;
+            z-index: 1000;
+            transition: all 0.3s ease;
+            overflow-y: auto;
+        }
+
+        .sidebar-brand {
+            padding: 1.25rem 1.5rem;
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.14);
+            background: #1d2c38;
+        }
+
+        .sidebar-brand img {
+            width: 38px;
+            height: 38px;
+            object-fit: contain;
+        }
+
+        .sidebar-brand-text {
+            line-height: 1.2;
+        }
+
+        .sidebar-brand-text .title {
+            font-weight: 700;
+            font-size: 1.2rem;
+            letter-spacing: 1px;
+            color: #f1b24a;
+        }
+
+        .sidebar-brand-text .subtitle {
+            font-size: 0.7rem;
+            color: #94a3b8;
+        }
+
+        .sidebar-menu {
+            padding: 1rem 0;
+        }
+
+        .sidebar-heading {
+            padding: 0.75rem 1.5rem 0.25rem;
+            font-size: 0.7rem;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+            color: #64748b;
+        }
+
+        .nav-link-custom {
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+            padding: 0.65rem 1.5rem;
+            color: #cbd5e1;
+            text-decoration: none;
+            font-size: 0.9rem;
+            font-weight: 500;
+            transition: all 0.2s ease;
+            border-left: 4px solid transparent;
+        }
+
+        .nav-link-custom:hover, .nav-link-custom.active {
+            color: #ffffff;
+            background-color: rgba(233, 162, 59, 0.14);
+            border-left-color: var(--primary-accent);
+            padding-left: calc(1.5rem - 4px);
+        }
+
+        .nav-link-custom i {
+            width: 20px;
+            text-align: center;
+            color: #94a3b8;
+        }
+
+        .nav-link-custom:hover i, .nav-link-custom.active i {
+            color: #f1b24a;
+        }
+
+        /* Main Content Wrapper */
+        .main-wrapper {
+            margin-left: var(--sidebar-width);
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            transition: all 0.3s ease;
+            position: relative;
+            z-index: 1;
+        }
+
+        /* Top Navbar */
+        .top-navbar {
+            height: 65px;
+            background: #ffffff;
+            border-bottom: 1px solid var(--border-color);
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 0 1.5rem;
+            position: sticky;
+            top: 0;
+            z-index: 999;
+        }
+
+        .content-area {
+            padding: 2rem clamp(1rem, 3vw, 2.5rem);
+            flex: 1;
+            animation: content-in 0.45s ease both;
+        }
+
+        /* Modern Card Styling */
+        .card-custom {
+            background: #ffffff;
+            border-radius: 10px;
+            border: 1px solid var(--border-color);
+            box-shadow: 0 3px 12px rgba(16, 42, 67, 0.045);
+            transition: transform 0.2s ease, box-shadow 0.2s ease;
+        }
+
+        .card-custom:hover {
+            transform: translateY(-1px);
+            box-shadow: 0 6px 16px rgba(16, 42, 67, 0.08);
+        }
+
+        .stat-card {
+            display: flex;
+            align-items: center;
+            gap: 1.25rem;
+            padding: 1.25rem;
+            border-top: 3px solid var(--primary-color);
+        }
+
+        .stat-card:nth-child(2) { border-top-color: #e9a23b; }
+        .stat-card:nth-child(3) { border-top-color: #d96c4b; }
+        .stat-card:nth-child(4) { border-top-color: #4386a8; }
+
+        .stat-icon {
+            width: 54px;
+            height: 54px;
+            border-radius: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.5rem;
+            flex-shrink: 0;
+        }
+
+        /* Badge Custom */
+        .badge-role {
+            font-size: 0.75rem;
+            padding: 0.35em 0.65em;
+            border-radius: 6px;
+            font-weight: 600;
+        }
+
+        .btn {
+            border-radius: 6px;
+            font-weight: 600;
+        }
+
+        .page-intro {
+            border-left: 3px solid var(--primary-accent);
+            padding-left: 0.9rem;
+        }
+
+        .page-intro h1, .page-intro h2, .page-intro h3, .page-intro h4 {
+            letter-spacing: -0.02em;
+        }
+
+        .dashboard-hero {
+            background: #173d48;
+            color: #ffffff;
+            border-radius: 10px;
+            padding: 1.5rem 1.75rem;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .dashboard-hero::after {
+            content: 'SIGMA';
+            position: absolute;
+            right: 1.5rem;
+            bottom: -1rem;
+            color: rgba(255, 255, 255, 0.08);
+            font: 700 5rem/1 'Space Grotesk', sans-serif;
+            letter-spacing: -0.08em;
+        }
+
+        .dashboard-hero h1, .dashboard-hero h2, .dashboard-hero h3, .dashboard-hero h4,
+        .dashboard-hero p { color: #ffffff; position: relative; z-index: 1; }
+
+        .dashboard-hero .hero-meta {
+            color: #b8d9d4;
+            font-size: 0.78rem;
+            letter-spacing: 0.08em;
+            text-transform: uppercase;
+        }
+
+        .section-label {
+            color: var(--muted-color);
+            font-size: 0.7rem;
+            font-weight: 700;
+            letter-spacing: 0.1em;
+            text-transform: uppercase;
+        }
+
+        .btn-primary {
+            background-color: var(--primary-color);
+            border-color: var(--primary-color);
+        }
+
+        .btn-primary:hover, .btn-primary:focus {
+            background-color: #115e59;
+            border-color: #115e59;
+        }
+
+        .table {
+            --bs-table-hover-bg: #f0f8f6;
+        }
+
+        .table thead th {
+            color: var(--muted-color);
+            font-size: 0.72rem;
+            letter-spacing: 0.04em;
+            text-transform: uppercase;
+            border-bottom-width: 1px;
+        }
+
+        .progress {
+            background-color: #e6eef0;
+            border-radius: 20px;
+        }
+
+        .progress-bar {
+            border-radius: 20px;
+        }
+
+        @keyframes content-in {
+            from { opacity: 0; transform: translateY(8px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        @media (max-width: 991.98px) {
+            .sidebar {
+                margin-left: calc(-1 * var(--sidebar-width));
+            }
+            .sidebar.active {
+                margin-left: 0;
+            }
+            .main-wrapper {
+                margin-left: 0;
+            }
+
+            .content-area {
+                padding: 1.25rem 0.9rem;
+            }
+        }
+    </style>
+    {% block extra_css %}{% endblock %}
+</head>
+<body>
+
+    <!-- SIDEBAR NAVIGATION -->
+    <aside class="sidebar" id="sidebar">
+        <div class="sidebar-brand">
+            <i class="fa-solid fa-graduation-cap text-primary fa-2x"></i>
+            <div class="sidebar-brand-text">
+                <div class="title">SIGMA</div>
+                <div class="subtitle">BGTK Sumatera Barat</div>
+            </div>
+        </div>
+
+        <div class="sidebar-menu">
+            <a href="{% url 'dashboard' %}" class="nav-link-custom {% if request.resolver_match.url_name == 'dashboard' %}active{% endif %}">
+                <i class="fa-solid fa-gauge"></i> Dashboard
+            </a>
+
+            {% if user.is_admin %}
+                <div class="sidebar-heading">Master Data</div>
+                <a href="{% url 'mahasiswa_list' %}" class="nav-link-custom {% if 'mahasiswa' in request.path %}active{% endif %}">
+                    <i class="fa-solid fa-user-graduate"></i> Data Mahasiswa
+                </a>
+                <a href="{% url 'kampus_list' %}" class="nav-link-custom {% if 'kampus' in request.path %}active{% endif %}">
+                    <i class="fa-solid fa-university"></i> Data Kampus
+                </a>
+                <a href="{% url 'pembimbing_list' %}" class="nav-link-custom {% if 'pembimbing' in request.path %}active{% endif %}">
+                    <i class="fa-solid fa-user-tie"></i> Data Pembimbing
+                </a>
+
+                <div class="sidebar-heading">Magang & Absensi</div>
+                <a href="{% url 'magang_list' %}" class="nav-link-custom {% if 'magang' in request.path %}active{% endif %}">
+                    <i class="fa-solid fa-briefcase"></i> Data Magang
+                </a>
+                <a href="{% url 'absensi_list' %}" class="nav-link-custom {% if 'absensi' in request.path %}active{% endif %}">
+                    <i class="fa-solid fa-calendar-check"></i> Monitoring Absensi
+                </a>
+                <a href="{% url 'kegiatan_list' %}" class="nav-link-custom {% if 'kegiatan' in request.path and 'rekap' not in request.path %}active{% endif %}">
+                    <i class="fa-solid fa-book-open"></i> Semua Kegiatan
+                </a>
+                <a href="{% url 'rekap_bulanan_list' %}" class="nav-link-custom {% if 'rekap-bulanan' in request.path %}active{% endif %}">
+                    <i class="fa-solid fa-chart-pie"></i> Rekap Bulanan
+                </a>
+                <a href="{% url 'laporan_detail' %}" class="nav-link-custom {% if 'laporan' in request.path %}active{% endif %}">
+                    <i class="fa-solid fa-file-contract"></i> Laporan Akhir
+                </a>
+            {% elif user.is_pembimbing %}
+                <div class="sidebar-heading">Monitoring Bimbingan</div>
+                <a href="{% url 'mahasiswa_list' %}" class="nav-link-custom {% if 'mahasiswa' in request.path %}active{% endif %}">
+                    <i class="fa-solid fa-users"></i> Mahasiswa Bimbingan
+                </a>
+                <a href="{% url 'absensi_list' %}" class="nav-link-custom {% if 'absensi' in request.path %}active{% endif %}">
+                    <i class="fa-solid fa-clipboard-user"></i> Rekap Kehadiran
+                </a>
+
+                <div class="sidebar-heading">Kegiatan & Laporan</div>
+                <a href="{% url 'kegiatan_list' %}" class="nav-link-custom {% if 'kegiatan' in request.path and 'rekap' not in request.path %}active{% endif %}">
+                    <i class="fa-solid fa-check-to-slot"></i> Verifikasi Kegiatan
+                </a>
+                <a href="{% url 'rekap_bulanan_list' %}" class="nav-link-custom {% if 'rekap-bulanan' in request.path %}active{% endif %}">
+                    <i class="fa-solid fa-chart-simple"></i> Rekap Bulanan
+                </a>
+                <a href="{% url 'laporan_detail' %}" class="nav-link-custom {% if 'laporan' in request.path %}active{% endif %}">
+                    <i class="fa-solid fa-file-signature"></i> Laporan Akhir
+                </a>
+            {% else %}
+                <div class="sidebar-heading">Kehadiran & Activity</div>
+                <a href="{% url 'absen_masuk' %}" class="nav-link-custom {% if request.resolver_match.url_name == 'absen_masuk' %}active{% endif %}">
+                    <i class="fa-solid fa-right-to-bracket"></i> Absen Hari Ini
+                </a>
+                <div class="sidebar-heading">Jurnal & Laporan</div>
+                <a href="{% url 'kegiatan_list' %}" class="nav-link-custom {% if 'kegiatan' in request.path and 'rekap' not in request.path %}active{% endif %}">
+                    <i class="fa-solid fa-journal-whills"></i> Kegiatan Mingguan
+                </a>
+                <a href="{% url 'rekap_bulanan_list' %}" class="nav-link-custom {% if 'rekap-bulanan' in request.path %}active{% endif %}">
+                    <i class="fa-solid fa-calendar-days"></i> Rekap Bulanan
+                </a>
+                <a href="{% url 'laporan_detail' %}" class="nav-link-custom {% if 'laporan' in request.path %}active{% endif %}">
+                    <i class="fa-solid fa-file-lines"></i> Laporan Akhir
+                </a>
+            {% endif %}
+
+            <div class="sidebar-heading">Akun</div>
+            <a href="{% url 'profile' %}" class="nav-link-custom {% if request.resolver_match.url_name == 'profile' %}active{% endif %}">
+                <i class="fa-solid fa-user-gear"></i> Profil Saya
+            </a>
+            {% if user.is_admin %}
+                <a href="{% url 'audit_log' %}" class="nav-link-custom {% if request.resolver_match.url_name == 'audit_log' %}active{% endif %}">
+                    <i class="fa-solid fa-shield-halved"></i> Audit Log
+                </a>
+            {% endif %}
+            <a href="{% url 'logout' %}" class="nav-link-custom text-danger">
+                <i class="fa-solid fa-arrow-right-from-bracket text-danger"></i> Keluar
+            </a>
+        </div>
+    </aside>
+
+    <!-- MAIN CONTENT -->
+    <div class="main-wrapper">
+        <header class="top-navbar">
+            <div class="d-flex align-items-center gap-3">
+                <button class="btn btn-sm btn-light border d-lg-none" id="toggleSidebar">
+                    <i class="fa-solid fa-bars"></i>
+                </button>
+                <div class="fw-semibold text-dark">
+                    BGTK SUMATERA BARAT
+                </div>
+            </div>
+
+            <div class="d-flex align-items-center gap-3">
+                <div class="dropdown">
+                    <a href="#" class="position-relative text-decoration-none" data-bs-toggle="dropdown" aria-label="Notifikasi">
+                        <i class="fa-solid fa-bell text-primary"></i>
+                        {% if unread_notifications %}<span class="position-absolute top-0 start-100 translate-middle badge rounded-pill bg-danger" style="font-size: 0.55rem;">{{ unread_notifications }}</span>{% endif %}
+                    </a>
+                    <ul class="dropdown-menu dropdown-menu-end shadow" style="min-width: 300px;">
+                        <li><h6 class="dropdown-header">Notifikasi</h6></li>
+                        {% for notification in latest_notifications %}
+                            <li><a class="dropdown-item small {% if not notification.is_read %}fw-bold{% endif %}" href="{% url 'notification_read' notification.pk %}">{{ notification.title }}<br><span class="text-muted fw-normal">{{ notification.message|truncatechars:65 }}</span></a></li>
+                        {% empty %}<li><span class="dropdown-item small text-muted">Belum ada notifikasi.</span></li>{% endfor %}
+                        <li><hr class="dropdown-divider"></li>
+                        <li><a class="dropdown-item text-primary small" href="{% url 'notifications' %}">Lihat semua notifikasi</a></li>
+                    </ul>
+                </div>
+                <div class="text-end d-none d-sm-block">
+                    <div class="fw-bold text-dark mb-0 small">{{ user.get_full_name|default:user.username }}</div>
+                    <span class="badge badge-role {% if user.is_admin %}bg-danger{% elif user.is_pembimbing %}bg-warning text-dark{% else %}bg-primary{% endif %}">
+                        {{ user.get_role_display }}
+                    </span>
+                </div>
+                <div class="dropdown">
+                    <a href="#" class="d-block link-dark text-decoration-none dropdown-toggle" data-bs-toggle="dropdown">
+                        <i class="fa-solid fa-circle-user fa-2x text-primary"></i>
+                    </a>
+                    <ul class="dropdown-menu dropdown-menu-end text-small shadow">
+                        <li><a class="dropdown-item" href="{% url 'profile' %}"><i class="fa-solid fa-user me-2"></i> Profil</a></li>
+                        <li><hr class="dropdown-divider"></li>
+                        <li><a class="dropdown-item text-danger" href="{% url 'logout' %}"><i class="fa-solid fa-power-off me-2"></i> Keluar</a></li>
+                    </ul>
+                </div>
+            </div>
+        </header>
+
+        <main class="content-area">
+            {% if messages %}
+                <div class="container-fluid px-0 mb-3">
+                    {% for message in messages %}
+                        <div class="alert alert-{{ message.tags|default:'info' }} alert-dismissible fade show shadow-sm" role="alert">
+                            {% if message.tags == 'success' %}<i class="fa-solid fa-circle-check me-2"></i>{% endif %}
+                            {% if message.tags == 'error' or message.tags == 'danger' %}<i class="fa-solid fa-circle-exclamation me-2"></i>{% endif %}
+                            {{ message }}
+                            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                        </div>
+                    {% endfor %}
+                </div>
+            {% endif %}
+
+            {% block content %}{% endblock %}
+        </main>
+    </div>
+
+    <!-- Bootstrap 5 JS Bundle -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+    <script>
+        document.getElementById('toggleSidebar')?.addEventListener('click', function() {
+            document.getElementById('sidebar').classList.toggle('active');
+        });
+    </script>
+    {% block extra_js %}{% endblock %}
+</body>
+</html>

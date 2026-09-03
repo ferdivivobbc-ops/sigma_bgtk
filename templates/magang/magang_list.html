@@ -1,0 +1,97 @@
+{% extends 'base.html' %}
+
+{% block title %}Data Penempatan Magang - SIGMA BGTK Sumbar{% endblock %}
+
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <div>
+        <h4 class="fw-bold mb-1">Data Penempatan Magang</h4>
+        <p class="text-muted small mb-0">Kelola periode magang, bagian unit BGTK, dan pembimbing lapang.</p>
+    </div>
+    <div class="d-flex gap-2">
+        {% if user.is_admin %}
+            <a href="{% url 'magang_create' %}" class="btn btn-primary">
+                <i class="fa-solid fa-plus me-1"></i> Penempatan Baru
+            </a>
+        {% endif %}
+        <a href="{% url 'export_magang_excel' %}" class="btn btn-success" title="Export ke Excel">
+            <i class="fa-solid fa-download me-1"></i> Export Excel
+        </a>
+    </div>
+</div>
+
+<!-- SEARCH & FILTER -->
+<div class="card-custom p-3 mb-4">
+    <form method="GET" class="row g-2">
+        <div class="col-12 col-md-6">
+            <input type="text" name="q" class="form-control" placeholder="Cari nama mahasiswa, bagian unit..." value="{{ search_query }}">
+        </div>
+        <div class="col-12 col-md-4">
+            <select name="status" class="form-select">
+                <option value="">-- Semua Status --</option>
+                <option value="BELUM_MULAI" {% if status_filter == 'BELUM_MULAI' %}selected{% endif %}>Belum Mulai</option>
+                <option value="AKTIF" {% if status_filter == 'AKTIF' %}selected{% endif %}>Aktif</option>
+                <option value="SELESAI" {% if status_filter == 'SELESAI' %}selected{% endif %}>Selesai</option>
+                <option value="DIBATALKAN" {% if status_filter == 'DIBATALKAN' %}selected{% endif %}>Dibatalkan</option>
+            </select>
+        </div>
+        <div class="col-12 col-md-2">
+            <button type="submit" class="btn btn-secondary w-100"><i class="fa-solid fa-magnifying-glass me-1"></i> Cari</button>
+        </div>
+    </form>
+</div>
+
+<!-- TABLE -->
+<div class="card-custom p-4">
+    <div class="table-responsive">
+        <table class="table table-hover align-middle">
+            <thead class="table-light">
+                <tr>
+                    <th>Mahasiswa & Kampus</th>
+                    <th>Bagian Unit BGTK</th>
+                    <th>Pembimbing</th>
+                    <th>Periode Tanggal</th>
+                    <th>Progress</th>
+                    <th>Status</th>
+                    {% if user.is_admin %}<th class="text-end">Aksi</th>{% endif %}
+                </tr>
+            </thead>
+            <tbody>
+                {% for m in page_obj %}
+                    <tr>
+                        <td>
+                            <div class="fw-bold text-dark">{{ m.mahasiswa.user.get_full_name }}</div>
+                            <small class="text-muted">{{ m.mahasiswa.kampus.nama_kampus|default:"-" }}</small>
+                        </td>
+                        <td><span class="badge bg-light text-dark border">{{ m.bagian }}</span></td>
+                        <td>{{ m.pembimbing.get_full_name|default:"<span class='text-muted'>Belum Ditetapkan</span>"|safe }}</td>
+                        <td><small>{{ m.tanggal_mulai }} s/d {{ m.tanggal_selesai }}</small></td>
+                        <td style="width: 140px;">
+                            <div class="progress" style="height: 8px;">
+                                <div class="progress-bar bg-primary" role="progressbar" style="width: {{ m.progress_percentage }}%;"></div>
+                            </div>
+                            <small class="fw-semibold text-primary">{{ m.progress_percentage }}%</small>
+                        </td>
+                        <td>
+                            {% if m.status == 'AKTIF' %}
+                                <span class="badge bg-success">Aktif</span>
+                            {% elif m.status == 'SELESAI' %}
+                                <span class="badge bg-info">Selesai</span>
+                            {% else %}
+                                <span class="badge bg-secondary">{{ m.get_status_display }}</span>
+                            {% endif %}
+                        </td>
+                        {% if user.is_admin %}
+                            <td class="text-end">
+                                <a href="{% url 'magang_edit' m.pk %}" class="btn btn-sm btn-outline-primary"><i class="fa-solid fa-pen"></i> Edit</a>
+                            </td>
+                        {% endif %}
+                    </tr>
+                {% empty %}
+                    <tr><td colspan="7" class="text-center text-muted py-4">Belum ada data magang.</td></tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+{% endblock %}

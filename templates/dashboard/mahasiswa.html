@@ -1,0 +1,157 @@
+{% extends 'base.html' %}
+
+{% block title %}Dashboard Mahasiswa - SIGMA BGTK Sumbar{% endblock %}
+
+{% block content %}
+<div class="dashboard-hero mb-4">
+    <div class="d-flex flex-column flex-md-row align-items-md-center justify-content-between gap-3">
+        <div class="d-flex align-items-center gap-3">
+            {% if mahasiswa.foto %}
+                <img src="{{ mahasiswa.foto.url }}" alt="Foto Profile" class="rounded-circle border" style="width: 64px; height: 64px; object-fit: cover;">
+            {% else %}
+                <div class="rounded-circle bg-primary bg-opacity-10 text-primary d-flex align-items-center justify-content-center fw-bold fs-3" style="width: 64px; height: 64px;">
+                    {{ user.first_name|first|upper }}
+                </div>
+            {% endif %}
+            <div>
+                <div class="hero-meta">Ruang kerja mahasiswa</div>
+                <h4 class="fw-bold mb-1 mt-2">Halo, {{ user.first_name|default:user.username }}.</h4>
+                <div class="small" style="color: #d7ece8;">
+                    {{ mahasiswa.prodi }} · {{ mahasiswa.kampus.nama_kampus|default:"Kampus belum diatur" }}
+                </div>
+            </div>
+        </div>
+        <div class="text-md-end">
+            <span class="badge bg-success px-3 py-2 fs-6 mb-1"><i class="fa-solid fa-building me-1"></i> {{ magang_info.bagian|default:"Belum Ditentukan" }}</span>
+                <div class="small" style="color: #d7ece8;">Pembimbing: <strong>{{ magang_info.pembimbing.get_full_name|default:"Belum Ditetapkan" }}</strong></div>
+        </div>
+    </div>
+
+    {% if magang_info %}
+        <hr class="my-3" style="border-color: rgba(255,255,255,.2);">
+        <div class="row align-items-center">
+            <div class="col-md-6 mb-2 mb-md-0">
+                <div class="small mb-1" style="color: #d7ece8;">
+                    Periode Magang: <strong>{{ magang_info.tanggal_mulai }}</strong> s/d <strong>{{ magang_info.tanggal_selesai }}</strong>
+                </div>
+                <div class="progress" style="height: 8px; background: rgba(255,255,255,.18);">
+                    <div class="progress-bar" role="progressbar" style="width: {{ magang_info.progress_percentage }}%; background: #e9a23b;"></div>
+                </div>
+            </div>
+            <div class="col-md-6 text-md-end">
+                <span class="small fw-bold" style="color: #f6c453;">Progress Magang: {{ magang_info.progress_percentage }}%</span>
+            </div>
+        </div>
+    {% endif %}
+</div>
+
+<!-- QUICK ACTION BUTTONS -->
+<div class="section-label mb-2">Yang bisa dikerjakan sekarang</div>
+<div class="row g-2 mb-4">
+    <div class="col-6 col-md-2.4">
+        {% if absensi_today %}
+            <button type="button" class="btn btn-secondary w-100 py-3 d-flex flex-column align-items-center gap-1 shadow-sm" disabled title="Absensi masuk hari ini sudah tercatat">
+                <i class="fa-solid fa-circle-check fa-2x"></i>
+                <span class="fw-bold small">SUDAH ABSEN MASUK</span>
+            </button>
+        {% else %}
+            <a href="{% url 'absen_masuk' %}" class="btn btn-success w-100 py-3 d-flex flex-column align-items-center gap-1 shadow-sm">
+                <i class="fa-solid fa-right-to-bracket fa-2x"></i>
+                <span class="fw-bold small">ABSEN MASUK</span>
+            </a>
+        {% endif %}
+    </div>
+
+    <div class="col-6 col-md-2.4">
+        {% if absensi_today and absensi_today.jam_masuk and not absensi_today.jam_pulang %}
+            <a href="{% url 'absen_pulang' %}" class="btn btn-warning text-dark w-100 py-3 d-flex flex-column align-items-center gap-1 shadow-sm">
+                <i class="fa-solid fa-right-from-bracket fa-2x"></i>
+                <span class="fw-bold small">ABSEN PULANG</span>
+            </a>
+        {% elif absensi_today and absensi_today.jam_pulang %}
+            <button type="button" class="btn btn-secondary w-100 py-3 d-flex flex-column align-items-center gap-1 shadow-sm" disabled title="Absensi pulang hari ini sudah tercatat">
+                <i class="fa-solid fa-check-double fa-2x"></i>
+                <span class="fw-bold small">SUDAH PULANG</span>
+            </button>
+        {% else %}
+            <button class="btn btn-light border text-muted disabled w-100 py-3 d-flex flex-column align-items-center gap-1 shadow-sm">
+                <i class="fa-solid fa-lock fa-2x"></i>
+                <span class="fw-bold small">ABSEN PULANG</span>
+            </button>
+        {% endif %}
+    </div>
+
+    <div class="col-6 col-md-2.4">
+        <a href="{% url 'kegiatan_create' %}" class="btn btn-primary w-100 py-3 d-flex flex-column align-items-center gap-1 shadow-sm">
+            <i class="fa-solid fa-pen-to-square fa-2x"></i>
+            <span class="fw-bold small">TAMBAH KEGIATAN MINGGUAN</span>
+        </a>
+    </div>
+
+    <div class="col-6 col-md-2.4">
+        <a href="{% url 'rekap_bulanan_list' %}" class="btn btn-info text-white w-100 py-3 d-flex flex-column align-items-center gap-1 shadow-sm">
+            <i class="fa-solid fa-calendar-days fa-2x"></i>
+            <span class="fw-bold small">REKAP BULANAN</span>
+        </a>
+    </div>
+
+    <div class="col-6 col-md-2.4">
+        <a href="{% url 'laporan_detail' %}" class="btn btn-dark w-100 py-3 d-flex flex-column align-items-center gap-1 shadow-sm">
+            <i class="fa-solid fa-file-invoice fa-2x"></i>
+            <span class="fw-bold small">LAPORAN AKHIR</span>
+        </a>
+    </div>
+</div>
+
+<!-- STATS CARDS -->
+<div class="section-label mb-2">Perjalanan magang</div>
+<div class="row g-3">
+    <div class="col-12 col-sm-6 col-lg-3">
+        <div class="card-custom stat-card">
+            <div class="stat-icon bg-success bg-opacity-10 text-success">
+                <i class="fa-solid fa-clipboard-user"></i>
+            </div>
+            <div>
+                <div class="text-muted small fw-semibold">Total Kehadiran</div>
+                <h3 class="fw-bold mb-0">{{ total_kehadiran }} <span class="fs-6 font-normal text-muted">Hari</span></h3>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-12 col-sm-6 col-lg-3">
+        <div class="card-custom stat-card">
+            <div class="stat-icon bg-primary bg-opacity-10 text-primary">
+                <i class="fa-solid fa-percent"></i>
+            </div>
+            <div>
+                <div class="text-muted small fw-semibold">Persentase Kehadiran</div>
+                <h3 class="fw-bold mb-0 text-primary">{{ attendance_percentage }}%</h3>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-12 col-sm-6 col-lg-3">
+        <div class="card-custom stat-card">
+            <div class="stat-icon bg-warning bg-opacity-10 text-warning">
+                <i class="fa-solid fa-book"></i>
+            </div>
+            <div>
+                <div class="text-muted small fw-semibold">Total Kegiatan</div>
+                <h3 class="fw-bold mb-0">{{ total_kegiatan }}</h3>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-12 col-sm-6 col-lg-3">
+        <div class="card-custom stat-card">
+            <div class="stat-icon bg-info bg-opacity-10 text-info">
+                <i class="fa-solid fa-check-double"></i>
+            </div>
+            <div>
+                <div class="text-muted small fw-semibold">Kegiatan Disetujui</div>
+                <h3 class="fw-bold mb-0 text-success">{{ kegiatan_approved }}</h3>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

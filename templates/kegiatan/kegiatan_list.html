@@ -1,0 +1,157 @@
+{% extends 'base.html' %}
+
+{% block title %}Jurnal Kegiatan Mingguan - SIGMA BGTK Sumbar{% endblock %}
+
+{% block content %}
+<div class="d-flex flex-column flex-md-row justify-content-between align-items-md-center gap-3 mb-4 page-intro">
+    <div>
+        <h4 class="fw-bold mb-1">Jurnal Kegiatan Mingguan</h4>
+        <p class="text-muted small mb-0">Pencatatan aktivitas mingguan dan status verifikasi pembimbing.</p>
+    </div>
+    <div class="d-flex flex-wrap gap-2">
+        {% if user.is_mahasiswa %}
+            <a href="{% url 'kegiatan_create' %}" class="btn btn-primary">
+                <i class="fa-solid fa-plus me-1"></i> Tambah Mingguan
+            </a>
+        {% endif %}
+        <a href="{% url 'export_kegiatan_excel' %}" class="btn btn-success" title="Export ke Excel">
+            <i class="fa-solid fa-download me-1"></i> Export
+        </a>
+    </div>
+</div>
+
+<!-- SEARCH & FILTER -->
+<div class="card-custom p-3 mb-4">
+    <form method="GET" class="row g-2">
+        <div class="col-12 col-md-5">
+            <input type="text" name="q" class="form-control" placeholder="Cari judul kegiatan, nama mahasiswa..." value="{{ search_query }}">
+        </div>
+        <div class="col-12 col-md-4">
+            <select name="status" class="form-select">
+                <option value="">-- Semua Status Verifikasi --</option>
+                <option value="MENUNGGU" {% if status_filter == 'MENUNGGU' %}selected{% endif %}>🟡 Menunggu Verifikasi</option>
+                <option value="DISETUJUI" {% if status_filter == 'DISETUJUI' %}selected{% endif %}>🟢 Disetujui</option>
+                <option value="PERLU_REVISI" {% if status_filter == 'PERLU_REVISI' %}selected{% endif %}>🟠 Perlu Revisi</option>
+                <option value="DITOLAK" {% if status_filter == 'DITOLAK' %}selected{% endif %}>🔴 Ditolak</option>
+            </select>
+        </div>
+        <div class="col-12 col-md-3">
+            <input type="date" name="minggu" class="form-control" value="{{ week_filter }}" title="Filter minggu">
+        </div>
+        <div class="col-12 col-md-2">
+            <button type="submit" class="btn btn-secondary w-100"><i class="fa-solid fa-magnifying-glass me-1"></i> Cari</button>
+        </div>
+    </form>
+</div>
+
+<!-- TABLE -->
+<div class="card-custom p-4">
+    <div class="table-responsive d-none d-lg-block">
+        <table class="table table-hover align-middle">
+            <thead class="table-light">
+                <tr>
+                    <th>Minggu / Tanggal</th>
+                    {% if not user.is_mahasiswa %}<th>Mahasiswa</th>{% endif %}
+                    <th>Judul & Uraian Kegiatan</th>
+                    <th>Hasil & Kendala</th>
+                    <th>Status Verifikasi</th>
+                    <th class="text-end">Aksi</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for k in page_obj %}
+                    <tr>
+                        <td class="fw-semibold" style="width: 145px;">
+                            <div>{{ k.minggu_mulai|date:"d M" }} - {{ k.minggu_selesai|date:"d M Y" }}</div>
+                            <small class="text-muted">{{ k.tanggal|date:"d M Y" }}</small>
+                        </td>
+                        {% if not user.is_mahasiswa %}
+                            <td>
+                                <div class="fw-bold text-dark">{{ k.mahasiswa.user.get_full_name }}</div>
+                                <small class="text-muted">{{ k.mahasiswa.nim }}</small>
+                            </td>
+                        {% endif %}
+                        <td>
+                            <div class="fw-bold text-dark mb-1">{{ k.judul_kegiatan }}</div>
+                            <p class="text-muted small mb-0 text-truncate" style="max-width: 320px;">{{ k.kegiatan }}</p>
+                        </td>
+                        <td>
+                            <div class="small"><strong>Hasil:</strong> {{ k.hasil|truncatechars:40 }}</div>
+                            <div class="small text-muted"><strong>Kendala:</strong> {{ k.kendala|truncatechars:30 }}</div>
+                        </td>
+                        <td>
+                            {% if k.status_verifikasi == 'DISETUJUI' %}
+                                <span class="badge bg-success">🟢 Disetujui</span>
+                            {% elif k.status_verifikasi == 'PERLU_REVISI' %}
+                                <span class="badge bg-warning text-dark">🟠 Perlu Revisi</span>
+                            {% elif k.status_verifikasi == 'DITOLAK' %}
+                                <span class="badge bg-danger">🔴 Ditolak</span>
+                            {% else %}
+                                <span class="badge bg-secondary">🟡 Menunggu</span>
+                            {% endif %}
+                        </td>
+                        <td class="text-end">
+                            <a href="{% url 'kegiatan_detail' k.pk %}" class="btn btn-sm btn-outline-info"><i class="fa-solid fa-eye"></i></a>
+                            {% if user.is_pembimbing or user.is_admin %}
+                                <a href="{% url 'kegiatan_verifikasi' k.pk %}" class="btn btn-sm btn-outline-warning text-dark"><i class="fa-solid fa-check-double"></i> Verifikasi</a>
+                            {% endif %}
+                        </td>
+                    </tr>
+                {% empty %}
+                    <tr><td colspan="6" class="text-center text-muted py-4">Belum ada jurnal kegiatan mingguan.</td></tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+
+    <div class="activity-mobile-list d-lg-none">
+        {% for k in page_obj %}
+            <article class="activity-mobile-item">
+                <div class="d-flex justify-content-between gap-2 mb-2">
+                    <span class="activity-week">{{ k.minggu_mulai|date:"d M" }} - {{ k.minggu_selesai|date:"d M Y" }}</span>
+                    {% if k.status_verifikasi == 'DISETUJUI' %}<span class="badge bg-success">Disetujui</span>{% elif k.status_verifikasi == 'PERLU_REVISI' %}<span class="badge bg-warning text-dark">Revisi</span>{% elif k.status_verifikasi == 'DITOLAK' %}<span class="badge bg-danger">Ditolak</span>{% else %}<span class="badge bg-secondary">Menunggu</span>{% endif %}
+                </div>
+                {% if not user.is_mahasiswa %}<div class="small text-muted mb-1">{{ k.mahasiswa.user.get_full_name }} · {{ k.mahasiswa.nim }}</div>{% endif %}
+                <h6 class="fw-bold mb-1">{{ k.judul_kegiatan }}</h6>
+                <p class="small text-muted mb-3">{{ k.kegiatan|truncatechars:100 }}</p>
+                <div class="d-flex justify-content-between align-items-center">
+                    <small class="text-muted">{{ k.tanggal|date:"d M Y" }}</small>
+                    <div class="d-flex gap-1"><a href="{% url 'kegiatan_detail' k.pk %}" class="btn btn-sm btn-outline-info"><i class="fa-solid fa-eye"></i></a>{% if user.is_pembimbing or user.is_admin %}<a href="{% url 'kegiatan_verifikasi' k.pk %}" class="btn btn-sm btn-outline-warning"><i class="fa-solid fa-check"></i></a>{% endif %}</div>
+                </div>
+            </article>
+        {% empty %}<div class="text-center text-muted py-4">Belum ada jurnal kegiatan mingguan.</div>{% endfor %}
+    </div>
+
+    <!-- PAGINATION -->
+    {% if page_obj.has_other_pages %}
+        <nav class="mt-3">
+            <ul class="pagination justify-content-center mb-0">
+                {% if page_obj.has_previous %}
+                    <li class="page-item"><a class="page-link" href="?page={{ page_obj.previous_page_number }}&q={{ search_query }}&status={{ status_filter }}">Previous</a></li>
+                {% endif %}
+                <li class="page-item disabled"><span class="page-link">Halaman {{ page_obj.number }} dari {{ page_obj.paginator.num_pages }}</span></li>
+                {% if page_obj.has_next %}
+                    <li class="page-item"><a class="page-link" href="?page={{ page_obj.next_page_number }}&q={{ search_query }}&status={{ status_filter }}">Next</a></li>
+                {% endif %}
+            </ul>
+        </nav>
+    {% endif %}
+</div>
+{% endblock %}
+
+{% block extra_css %}
+<style>
+    .activity-mobile-item {
+        padding: 1rem 0;
+        border-bottom: 1px solid var(--border-color);
+    }
+    .activity-mobile-item:last-child { border-bottom: 0; }
+    .activity-week {
+        color: var(--primary-color);
+        font-size: 0.72rem;
+        font-weight: 700;
+        letter-spacing: 0.03em;
+        text-transform: uppercase;
+    }
+</style>
+{% endblock %}

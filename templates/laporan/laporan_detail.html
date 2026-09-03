@@ -1,0 +1,165 @@
+{% extends 'base.html' %}
+
+{% block title %}Laporan Akhir Magang - SIGMA BGTK Sumbar{% endblock %}
+
+{% block content %}
+<div class="d-flex flex-column flex-md-row justify-content-between align-items-md-center gap-3 mb-4">
+    <div>
+        <h4 class="fw-bold mb-1">Laporan Akhir Magang</h4>
+        <p class="text-muted small mb-0">Penyusunan, pemeriksaan, dan pengunduhan dokumen laporan akhir magang BGTK Sumbar.</p>
+    </div>
+
+    <div class="d-flex flex-wrap align-items-center gap-2">
+        {% if user.is_mahasiswa %}
+            <a href="{% url 'laporan_generate_draft' %}" class="btn btn-primary btn-sm">
+                <i class="fa-solid fa-wand-magic-sparkles me-1"></i> GENERATE DRAFT LAPORAN
+            </a>
+            {% if laporan %}
+                <a href="{% url 'laporan_edit' laporan.pk %}" class="btn btn-outline-primary btn-sm">
+                    <i class="fa-solid fa-pen-to-square me-1"></i> Edit Draft
+                </a>
+            {% endif %}
+        {% endif %}
+
+        {% if laporan %}
+            <a href="{% url 'export_pdf' laporan.pk %}" class="btn btn-danger btn-sm" target="_blank">
+                <i class="fa-solid fa-file-pdf me-1"></i> Download PDF
+            </a>
+            <a href="{% url 'export_word' laporan.pk %}" class="btn btn-primary btn-sm" style="background-color: #2b579a; border-color: #2b579a;">
+                <i class="fa-solid fa-file-word me-1"></i> Download Word (.docx)
+            </a>
+        {% endif %}
+    </div>
+</div>
+
+{% if no_laporan %}
+    <div class="card-custom p-5 text-center">
+        <i class="fa-solid fa-file-circle-plus fa-4x text-primary mb-3"></i>
+        <h5 class="fw-bold">Belum Ada Laporan Akhir</h5>
+        <p class="text-muted small mb-3">Sistem SIGMA dapat menyusun draft Laporan Akhir secara otomatis dari data magang, absensi, dan jurnal harian Anda.</p>
+        <div>
+            <a href="{% url 'laporan_generate_draft' %}" class="btn btn-primary">
+                <i class="fa-solid fa-wand-magic-sparkles me-1"></i> GENERATE LAPORAN AKHIR SEKARANG
+            </a>
+        </div>
+    </div>
+{% else %}
+
+    <!-- STATUS & APPROVAL CARD FOR PEMBIMBING/ADMIN -->
+    <div class="card-custom p-4 mb-4 border-start border-4 {% if laporan.status == 'DISETUJUI' %}border-success{% elif laporan.status == 'PERLU_REVISI' %}border-warning{% else %}border-info{% endif %}">
+        <div class="d-flex flex-column flex-md-row justify-content-between align-items-md-center gap-3">
+            <div>
+                <span class="text-muted small">Status Laporan:</span>
+                <h5 class="fw-bold mb-0">
+                    {% if laporan.status == 'DISETUJUI' %}
+                        <span class="text-success"><i class="fa-solid fa-circle-check me-1"></i> Disetujui Pembimbing</span>
+                    {% elif laporan.status == 'PERLU_REVISI' %}
+                        <span class="text-warning"><i class="fa-solid fa-circle-exclamation me-1"></i> Perlu Revisi</span>
+                    {% elif laporan.status == 'PERIKSA' %}
+                        <span class="text-info"><i class="fa-solid fa-hourglass-half me-1"></i> Menunggu Pemeriksaan</span>
+                    {% else %}
+                        <span class="text-secondary"><i class="fa-solid fa-file me-1"></i> Draft Mahasiswa</span>
+                    {% endif %}
+                </h5>
+            </div>
+
+            {% if user.is_pembimbing or user.is_admin %}
+                <form method="POST" action="{% url 'laporan_status_update' laporan.pk %}" class="d-flex align-items-center gap-2">
+                    {% csrf_token %}
+                    <select name="status" class="form-select form-select-sm">
+                        <option value="DISETUJUI" {% if laporan.status == 'DISETUJUI' %}selected{% endif %}>Disetujui</option>
+                        <option value="PERLU_REVISI" {% if laporan.status == 'PERLU_REVISI' %}selected{% endif %}>Perlu Revisi</option>
+                    </select>
+                    <button type="submit" class="btn btn-sm btn-warning text-dark text-nowrap fw-bold">
+                        Update Status
+                    </button>
+                </form>
+            {% endif %}
+        </div>
+        {% if laporan.catatan_pembimbing %}
+            <div class="mt-3 p-2 bg-light rounded border small">
+                <strong>Catatan Pembimbing:</strong> {{ laporan.catatan_pembimbing }}
+            </div>
+        {% endif %}
+        {% if laporan.file_pdf or laporan.file_word %}
+            <div class="mt-3 d-flex flex-wrap gap-2 align-items-center">
+                <span class="small text-muted fw-semibold">Lampiran:</span>
+                {% if laporan.file_pdf %}
+                    <a href="{{ laporan.file_pdf.url }}" class="btn btn-sm btn-outline-danger" target="_blank">
+                        <i class="fa-solid fa-file-pdf me-1"></i> Lihat PDF
+                    </a>
+                {% endif %}
+                {% if laporan.file_word %}
+                    <a href="{{ laporan.file_word.url }}" class="btn btn-sm btn-outline-primary" target="_blank">
+                        <i class="fa-solid fa-file-word me-1"></i> Unduh Word
+                    </a>
+                {% endif %}
+            </div>
+        {% endif %}
+    </div>
+
+    <!-- DOCUMENT PREVIEW CONTAINER -->
+    <div class="card-custom p-4 p-md-5 bg-white shadow-sm">
+
+        <!-- COVER PAGE -->
+        <div class="text-center mb-5 pb-4 border-bottom">
+            <div class="text-primary fw-bold mb-2"><i class="fa-solid fa-graduation-cap fa-2x"></i></div>
+            <h5 class="text-muted fw-semibold">BALAI GURU DAN TENAGA KEPENDIDIKAN (BGTK) SUMATERA BARAT</h5>
+            <h3 class="fw-bold text-dark my-4">{{ laporan.judul }}</h3>
+
+            <div class="my-4 py-3 bg-light rounded d-inline-block px-4 border">
+                <div class="fw-bold text-dark fs-6">{{ laporan.mahasiswa.user.get_full_name }}</div>
+                <div class="text-muted small">NIM: {{ laporan.mahasiswa.nim }} | Prodi: {{ laporan.mahasiswa.prodi }}</div>
+                <div class="text-primary small fw-semibold mt-1">{{ laporan.mahasiswa.kampus.nama_kampus|default:"-" }}</div>
+            </div>
+        </div>
+
+        <!-- KATA PENGANTAR -->
+        <div class="mb-5">
+            <h5 class="fw-bold text-primary border-bottom pb-2 mb-3">KATA PENGANTAR</h5>
+            <p class="text-dark" style="white-space: pre-line; line-height: 1.7;">{{ laporan.kata_pengantar }}</p>
+        </div>
+
+        <!-- BAB I -->
+        <div class="mb-5">
+            <h5 class="fw-bold text-primary border-bottom pb-2 mb-3">BAB I – PENDAHULUAN</h5>
+            <h6 class="fw-bold text-dark mt-3">1.1 Latar Belakang</h6>
+            <p class="text-dark" style="white-space: pre-line; line-height: 1.7;">{{ laporan.latar_belakang }}</p>
+
+            <h6 class="fw-bold text-dark mt-3">1.2 Tujuan Magang</h6>
+            <p class="text-dark" style="white-space: pre-line; line-height: 1.7;">{{ laporan.tujuan }}</p>
+
+            <h6 class="fw-bold text-dark mt-3">1.3 Manfaat Magang</h6>
+            <p class="text-dark" style="white-space: pre-line; line-height: 1.7;">{{ laporan.manfaat }}</p>
+        </div>
+
+        <!-- BAB II -->
+        <div class="mb-5">
+            <h5 class="fw-bold text-primary border-bottom pb-2 mb-3">BAB II – GAMBARAN UMUM BGTK SUMATERA BARAT</h5>
+            <p class="text-dark" style="white-space: pre-line; line-height: 1.7;">{{ laporan.gambaran_umum }}</p>
+        </div>
+
+        <!-- BAB III -->
+        <div class="mb-5">
+            <h5 class="fw-bold text-primary border-bottom pb-2 mb-3">BAB III – PELAKSANAAN MAGANG</h5>
+            <p class="text-dark" style="white-space: pre-line; line-height: 1.7;">{{ laporan.pelaksanaan_magang }}</p>
+        </div>
+
+        <!-- BAB IV -->
+        <div class="mb-5">
+            <h5 class="fw-bold text-primary border-bottom pb-2 mb-3">BAB IV – HASIL DAN PEMBAHASAN</h5>
+            <p class="text-dark" style="white-space: pre-line; line-height: 1.7;">{{ laporan.hasil_pembahasan }}</p>
+        </div>
+
+        <!-- BAB V -->
+        <div class="mb-5">
+            <h5 class="fw-bold text-primary border-bottom pb-2 mb-3">BAB V – PENUTUP</h5>
+            <h6 class="fw-bold text-dark mt-3">5.1 Kesimpulan</h6>
+            <p class="text-dark" style="white-space: pre-line; line-height: 1.7;">{{ laporan.kesimpulan }}</p>
+
+            <h6 class="fw-bold text-dark mt-3">5.2 Saran</h6>
+            <p class="text-dark" style="white-space: pre-line; line-height: 1.7;">{{ laporan.saran }}</p>
+        </div>
+    </div>
+{% endif %}
+{% endblock %}

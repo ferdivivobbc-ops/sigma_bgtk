@@ -1,0 +1,63 @@
+{% extends 'base.html' %}
+
+{% block title %}{% if kegiatan %}Edit{% else %}Isi{% endif %} Jurnal Kegiatan Mingguan - SIGMA BGTK Sumbar{% endblock %}
+
+{% block content %}
+<div class="row justify-content-center">
+    <div class="col-12 col-md-8">
+        <div class="card-custom p-4">
+            <h5 class="fw-bold mb-3"><i class="fa-solid fa-pen-to-square text-primary me-2"></i> {% if kegiatan %}Edit{% else %}Form{% endif %} Jurnal Kegiatan Mingguan</h5>
+            <form method="POST" enctype="multipart/form-data">
+                {% csrf_token %}
+                <div class="mb-3">
+                    <label class="form-label fw-semibold">Tanggal Kegiatan <span class="text-danger">*</span></label>
+                    <input type="date" name="tanggal" class="form-control" value="{% if kegiatan %}{{ kegiatan.tanggal|date:'Y-m-d' }}{% else %}{{ today|date:'Y-m-d' }}{% endif %}" required>
+                </div>
+
+                <div class="mb-3">
+                    <label class="form-label fw-semibold">Minggu Pelaporan <span class="text-danger">*</span></label>
+                    <input type="date" name="minggu_mulai" class="form-control" value="{% if kegiatan %}{{ kegiatan.minggu_mulai|date:'Y-m-d' }}{% else %}{{ today|date:'Y-m-d' }}{% endif %}" required>
+                    <small class="text-muted">Pilih salah satu tanggal dalam minggu pelaporan. Sistem otomatis menyimpan Senin-Minggu.</small>
+                </div>
+
+                <div class="mb-3">
+                    <label class="form-label fw-semibold">Judul Kegiatan <span class="text-danger">*</span></label>
+                    <input type="text" name="judul_kegiatan" class="form-control" value="{{ kegiatan.judul_kegiatan|default:'' }}" placeholder="Contoh: Menginput data administrasi pelatihan guru" required>
+                </div>
+
+                <div class="mb-3">
+                    <label class="form-label fw-semibold">Uraian Kegiatan <span class="text-danger">*</span></label>
+                    <textarea name="kegiatan" class="form-control" rows="4" placeholder="Jelaskan secara rinci langkah-langkah kegiatan yang dilakukan..." required>{{ kegiatan.kegiatan|default:'' }}</textarea>
+                </div>
+
+                <div class="mb-3">
+                    <label class="form-label fw-semibold">Hasil Kegiatan <span class="text-danger">*</span></label>
+                    <textarea name="hasil" class="form-control" rows="3" placeholder="Jelaskan hasil yang dicapai dari kegiatan tersebut..." required>{{ kegiatan.hasil|default:'' }}</textarea>
+                </div>
+
+                <div class="row g-3 mb-3">
+                    <div class="col-md-6">
+                        <label class="form-label fw-semibold">Kendala Yang Dihadapi</label>
+                        <textarea name="kendala" class="form-control" rows="2">{{ kegiatan.kendala|default:'Tidak ada kendala.' }}</textarea>
+                    </div>
+                    <div class="col-md-6">
+                        <label class="form-label fw-semibold">Solusi / Pemecahan Masalah</label>
+                        <textarea name="solusi" class="form-control" rows="2">{{ kegiatan.solusi|default:'Tidak ada.' }}</textarea>
+                    </div>
+                </div>
+
+                <div class="mb-4">
+                    <label class="form-label fw-semibold">Dokumentasi Foto Kegiatan</label>
+                    <input type="file" name="dokumentasi" class="form-control" accept="image/*">
+                    <small class="text-muted">Upload foto bukti fisik pelaksanaan kegiatan.{% if kegiatan.dokumentasi %} Foto saat ini sudah tersedia.{% endif %}</small>
+                </div>
+
+                <div class="d-flex justify-content-end gap-2">
+                    <a href="{% url 'kegiatan_list' %}" class="btn btn-secondary">Batal</a>
+                    <button type="submit" class="btn btn-primary"><i class="fa-solid fa-paper-plane me-1"></i> {% if kegiatan %}Simpan & Kirim Ulang{% else %}Simpan & Ajukan Verifikasi{% endif %}</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+{% endblock %}

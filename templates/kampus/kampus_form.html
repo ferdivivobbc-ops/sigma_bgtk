@@ -1,0 +1,53 @@
+{% extends 'base.html' %}
+
+{% block title %}{{ action }} Kampus - SIGMA BGTK Sumbar{% endblock %}
+
+{% block content %}
+<div class="row justify-content-center">
+    <div class="col-12 col-md-8 col-lg-6">
+        <div class="card-custom p-4">
+            <h5 class="fw-bold mb-3">{{ action }} Data Kampus</h5>
+            <form method="POST">
+                {% csrf_token %}
+                <div class="mb-3">
+                    <label class="form-label fw-semibold">Nama Perguruan Tinggi / Kampus <span class="text-danger">*</span></label>
+                    <input type="text" name="nama_kampus" class="form-control" value="{{ kampus.nama_kampus|default:'' }}" required placeholder="Contoh: Universitas Negeri Padang">
+                </div>
+
+                <div class="mb-3">
+                    <label class="form-label fw-semibold">Fakultas</label>
+                    <textarea name="fakultas" class="form-control" rows="2" placeholder="Contoh: Fakultas Teknik, Fakultas Kedokteran, Fakultas Ekonomi">{{ kampus.fakultas|default:'' }}</textarea>
+                </div>
+
+                <div class="mb-3">
+                    <label class="form-label fw-semibold">Program Studi</label>
+                    <textarea name="prodi" class="form-control" rows="3" placeholder="Contoh: Teknik Informatika, Sistem Informasi, Pendidikan Teknik Informatika">{{ kampus.prodi|default:'' }}</textarea>
+                </div>
+
+                <div class="mb-3">
+                    <label class="form-label fw-semibold">Alamat Lengkap</label>
+                    <textarea name="alamat" class="form-control" rows="3" placeholder="Masukkan alamat lokasi kampus">{{ kampus.alamat|default:'' }}</textarea>
+                </div>
+
+                <div class="mb-3">
+                    <label class="form-label fw-semibold">Kontak / Telepon / Email</label>
+                    <input type="text" name="kontak" class="form-control" value="{{ kampus.kontak|default:'' }}" placeholder="Contoh: 0751-123456 / info@unp.ac.id">
+                </div>
+
+                <div class="mb-4">
+                    <label class="form-label fw-semibold">Status Kampus</label>
+                    <select name="status" class="form-select">
+                        <option value="AKTIF" {% if kampus.status == 'AKTIF' or not kampus %}selected{% endif %}>Aktif</option>
+                        <option value="NONAKTIF" {% if kampus.status == 'NONAKTIF' %}selected{% endif %}>Nonaktif</option>
+                    </select>
+                </div>
+
+                <div class="d-flex justify-content-end gap-2">
+                    <a href="{% url 'kampus_list' %}" class="btn btn-secondary">Batal</a>
+                    <button type="submit" class="btn btn-primary"><i class="fa-solid fa-floppy-disk me-1"></i> Simpan Data</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+{% endblock %}

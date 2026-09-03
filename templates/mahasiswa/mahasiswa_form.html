@@ -1,0 +1,112 @@
+{% extends 'base.html' %}
+
+{% block title %}{{ action }} Data Mahasiswa{% endblock %}
+
+{% block content %}
+<div class="row justify-content-center">
+    <div class="col-12 col-md-8">
+        <div class="card-custom p-4">
+            <h5 class="fw-bold mb-3">{{ action }} Data Mahasiswa</h5>
+            <form method="POST" enctype="multipart/form-data">
+                {% csrf_token %}
+                <div class="row g-3 mb-3">
+                    <div class="col-md-6">
+                        <label class="form-label fw-semibold">Nama Lengkap <span class="text-danger">*</span></label>
+                        <input type="text" name="full_name" class="form-control" value="{{ mahasiswa.user.get_full_name|default:'' }}" required>
+                    </div>
+                    <div class="col-md-6">
+                        <label class="form-label fw-semibold">Email <span class="text-danger">*</span></label>
+                        <input type="email" name="email" class="form-control" value="{{ mahasiswa.user.email|default:'' }}" required>
+                    </div>
+                </div>
+
+                <div class="row g-3 mb-3">
+                    <div class="col-md-6">
+                        <label class="form-label fw-semibold">NIM <span class="text-danger">*</span></label>
+                        <input type="text" name="nim" class="form-control" value="{{ mahasiswa.nim|default:'' }}" required>
+                    </div>
+                    <div class="col-md-6">
+                        <label class="form-label fw-semibold">Program Studi <span class="text-danger">*</span></label>
+                        <input type="text" name="prodi" class="form-control" value="{{ mahasiswa.prodi|default:'' }}" required>
+                    </div>
+                </div>
+
+                <div class="row g-3 mb-3">
+                    <div class="col-md-6">
+                        <label class="form-label fw-semibold">Kampus Asal <span class="text-danger">*</span></label>
+                        <select name="kampus" class="form-select" required>
+                            <option value="">-- Pilih Kampus --</option>
+                            {% for k in kampus_list %}
+                                <option value="{{ k.pk }}" {% if mahasiswa.kampus_id == k.pk %}selected{% endif %}>{{ k.nama_kampus }}</option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                    <div class="col-md-6">
+                        <label class="form-label fw-semibold">Nomor HP</label>
+                        <input type="text" name="no_hp" class="form-control" value="{{ mahasiswa.no_hp|default:'' }}">
+                    </div>
+                </div>
+
+                {% if action == 'Tambah' %}
+                    <div class="mb-3">
+                        <label class="form-label fw-semibold">Password Akun (Default: mahasiswa123)</label>
+                        <input type="password" name="password" class="form-control" placeholder="Kosongkan untuk password default">
+                    </div>
+                {% endif %}
+
+                <div class="row g-3 mb-4">
+                    <div class="col-md-6">
+                        <label class="form-label fw-semibold">Foto Profile</label>
+                        <input type="file" name="foto" class="form-control" accept="image/*">
+                    </div>
+                    <div class="col-md-6">
+                        <label class="form-label fw-semibold">Status Mahasiswa</label>
+                        <select name="status" class="form-select">
+                            <option value="AKTIF" {% if mahasiswa.status == 'AKTIF' or not mahasiswa %}selected{% endif %}>Aktif</option>
+                            <option value="SELESAI" {% if mahasiswa.status == 'SELESAI' %}selected{% endif %}>Selesai</option>
+                            <option value="NONAKTIF" {% if mahasiswa.status == 'NONAKTIF' %}selected{% endif %}>Nonaktif</option>
+                        </select>
+                    </div>
+                </div>
+
+                <div class="border rounded p-3 mb-4">
+                    <h6 class="fw-bold mb-3"><i class="fa-solid fa-user-tie text-primary me-2"></i>Penugasan Pembimbing</h6>
+                    {% if user.is_pembimbing %}
+                        <div class="alert alert-info py-2 small">Mahasiswa ini akan otomatis terhubung ke akun pembimbing Anda.</div>
+                    {% else %}
+                        <div class="mb-3">
+                            <label class="form-label fw-semibold">Pembimbing BGTK</label>
+                            <select name="pembimbing" class="form-select">
+                                <option value="">-- Belum Ditentukan --</option>
+                                {% for p in pembimbing_list %}
+                                    <option value="{{ p.pk }}" {% if mahasiswa.data_magang.pembimbing_id == p.pk %}selected{% endif %}>{{ p.get_full_name|default:p.username }}</option>
+                                {% endfor %}
+                            </select>
+                        </div>
+                    {% endif %}
+                    <div class="row g-3">
+                        <div class="col-md-4">
+                            <label class="form-label fw-semibold">Bagian / Unit{% if user.is_pembimbing %} <span class="text-danger">*</span>{% endif %}</label>
+                            <input type="text" name="bagian" class="form-control" value="{{ mahasiswa.data_magang.bagian|default:'' }}" placeholder="Contoh: Tata Usaha" {% if user.is_pembimbing %}required{% endif %}>
+                        </div>
+                        <div class="col-md-4">
+                            <label class="form-label fw-semibold">Tanggal Mulai{% if user.is_pembimbing %} <span class="text-danger">*</span>{% endif %}</label>
+                            <input type="date" name="tanggal_mulai" class="form-control" value="{{ mahasiswa.data_magang.tanggal_mulai|date:'Y-m-d'|default:'' }}" {% if user.is_pembimbing %}required{% endif %}>
+                        </div>
+                        <div class="col-md-4">
+                            <label class="form-label fw-semibold">Tanggal Selesai{% if user.is_pembimbing %} <span class="text-danger">*</span>{% endif %}</label>
+                            <input type="date" name="tanggal_selesai" class="form-control" value="{{ mahasiswa.data_magang.tanggal_selesai|date:'Y-m-d'|default:'' }}" {% if user.is_pembimbing %}required{% endif %}>
+                        </div>
+                    </div>
+                    <div class="form-text mt-2">Isi bagian dan periode jika mahasiswa langsung ditugaskan kepada pembimbing.</div>
+                </div>
+
+                <div class="d-flex justify-content-end gap-2">
+                    <a href="{% url 'mahasiswa_list' %}" class="btn btn-secondary">Batal</a>
+                    <button type="submit" class="btn btn-primary"><i class="fa-solid fa-floppy-disk me-1"></i> Simpan Data</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+{% endblock %}

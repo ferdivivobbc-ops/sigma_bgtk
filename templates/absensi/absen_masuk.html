@@ -1,0 +1,166 @@
+{% extends 'base.html' %}
+
+{% block title %}Absensi Masuk Digital - SIGMA BGTK Sumbar{% endblock %}
+
+{% block content %}
+<div class="row justify-content-center">
+    <div class="col-12 col-md-8 col-lg-6">
+        <div class="card-custom p-4">
+            <div class="text-center mb-3">
+                <i class="fa-solid fa-camera-retro fa-3x text-primary mb-2"></i>
+                <h4 class="fw-bold mb-1">Absensi Masuk Digital</h4>
+                <p class="text-muted small">Tanggal: <strong>{{ today|date:"l, d F Y" }}</strong></p>
+            </div>
+
+            <form method="POST" enctype="multipart/form-data" id="absenForm">
+                {% csrf_token %}
+                <input type="hidden" name="latitude" id="latitude">
+                <input type="hidden" name="longitude" id="longitude">
+
+                <!-- LOCATION STATUS -->
+                <div class="alert alert-info py-2 px-3 small d-flex align-items-center gap-2 mb-3" id="locationStatus">
+                    <i class="fa-solid fa-location-dot text-danger"></i>
+                    <span id="locationText">Mendeteksi lokasi GPS Anda...</span>
+                </div>
+
+                <div class="alert alert-warning py-2 px-3 small d-flex align-items-center gap-2 mb-3">
+                    <i class="fa-solid fa-clock"></i>
+                    <span>Absensi masuk tersedia pukul <strong>07:30 - 16:00</strong>.</span>
+                </div>
+
+                <!-- WEBCAM / CAMERA CAPTURE -->
+                <div class="mb-3 text-center">
+                    <label class="form-label fw-semibold">Foto Absen Masuk</label>
+                    <div class="bg-light border rounded-3 overflow-hidden position-relative mb-2" style="max-width: 100%; height: 260px;">
+                        <video id="webcam" autoplay playsinline style="display: none; width: 100%; height: 100%; object-fit: cover; transform: none;"></video>
+                        <canvas id="canvas" style="display: none; width: 100%; height: 100%;"></canvas>
+                        <img id="fotoPreview" alt="Pratinjau foto absen masuk" style="display: none; width: 100%; height: 100%; object-fit: cover;">
+                        <div id="cameraMessage" class="h-100 d-flex align-items-center justify-content-center text-muted px-3">
+                            Kamera belum aktif. Klik "Ambil Foto Webcam" atau pilih file foto.
+                        </div>
+                    </div>
+
+                    <div class="d-flex justify-content-center gap-2 mb-2">
+                        <label for="fotoInput" id="btnSnap" class="btn btn-sm btn-outline-primary mb-0">
+                            <i class="fa-solid fa-camera me-1"></i> Buka Kamera HP
+                        </label>
+                        <button type="button" class="btn btn-sm btn-outline-secondary" id="btnRetake" style="display: none;">
+                            <i class="fa-solid fa-rotate-left me-1"></i> Foto Ulang
+                        </button>
+                    </div>
+
+                    <div class="text-muted small mb-2">Atau upload file foto manual:</div>
+                    <input type="file" name="foto" id="fotoInput" class="form-control form-control-sm" accept="image/*" capture="user" required>
+                </div>
+
+                <div class="mb-4">
+                    <label class="form-label fw-semibold">Status Kehadiran</label>
+                    <select name="status" class="form-select">
+                        <option value="HADIR" selected>Hadir</option>
+                        <option value="IZIN">Izin</option>
+                        <option value="SAKIT">Sakit</option>
+                    </select>
+                </div>
+
+                <button type="submit" class="btn btn-success w-100 py-2.5 fw-bold shadow-sm" id="submitAbsen">
+                    <i class="fa-solid fa-check-circle me-1"></i> SIMPAN ABSEN MASUK
+                </button>
+            </form>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    // 1. Geolocation API
+    if (navigator.geolocation) {
+        navigator.geolocation.getCurrentPosition(
+            function(position) {
+                document.getElementById('latitude').value = position.coords.latitude;
+                document.getElementById('longitude').value = position.coords.longitude;
+                document.getElementById('locationText').innerText = `Lokasi Terdeteksi: Lat ${position.coords.latitude.toFixed(4)}, Long ${position.coords.longitude.toFixed(4)}`;
+                document.getElementById('locationStatus').className = "alert alert-success py-2 px-3 small d-flex align-items-center gap-2 mb-3";
+            },
+            function(error) {
+                document.getElementById('locationText').innerText = "Lokasi GPS tidak dapat diakses (Izinkan akses lokasi di browser).";
+                document.getElementById('locationStatus').className = "alert alert-warning py-2 px-3 small d-flex align-items-center gap-2 mb-3";
+            }
+        );
+    }
+
+    // 2. Webcam Stream API
+    const video = document.getElementById('webcam');
+    const canvas = document.getElementById('canvas');
+    const btnSnap = document.getElementById('btnSnap');
+    const btnRetake = document.getElementById('btnRetake');
+    const fotoInput = document.getElementById('fotoInput');
+    const cameraMessage = document.getElementById('cameraMessage');
+    const fotoPreview = document.getElementById('fotoPreview');
+
+    fotoInput.addEventListener('change', function() {
+        const file = fotoInput.files[0];
+        if (!file) return;
+        fotoPreview.src = URL.createObjectURL(file);
+        fotoPreview.style.display = 'block';
+        video.style.display = 'none';
+        canvas.style.display = 'none';
+        cameraMessage.style.display = 'none';
+    });
+    const submitAbsen = document.getElementById('submitAbsen');
+
+    document.getElementById('absenForm').addEventListener('submit', function() {
+        submitAbsen.disabled = true;
+        submitAbsen.innerHTML = '<i class="fa-solid fa-spinner fa-spin me-1"></i> Menyimpan...';
+    });
+
+    if (navigator.mediaDevices && navigator.mediaDevices.getUserMedia) {
+        if (!window.isSecureContext) {
+            cameraMessage.textContent = 'Kamera laptop memerlukan HTTPS. Gunakan upload foto atau buka aplikasi melalui HTTPS.';
+        }
+        navigator.mediaDevices.getUserMedia({ video: true })
+            .then(function(stream) {
+                video.srcObject = stream;
+                video.style.display = 'block';
+                cameraMessage.style.display = 'none';
+            })
+            .catch(function(err) {
+                console.log("Kamera tidak dapat diakses: ", err);
+                cameraMessage.textContent = 'Kamera laptop tidak mendapat izin. Izinkan kamera browser atau gunakan upload foto.';
+            });
+    } else {
+        cameraMessage.textContent = 'Gunakan tombol untuk mengambil atau memilih foto dari HP.';
+    }
+
+    btnSnap.addEventListener('click', function(event) {
+        if (!video.videoWidth || !video.videoHeight) return;
+        event.preventDefault();
+        canvas.width = video.videoWidth;
+        canvas.height = video.videoHeight;
+        const context = canvas.getContext('2d');
+        context.filter = 'brightness(1.35) contrast(1.05)';
+        context.drawImage(video, 0, 0, canvas.width, canvas.height);
+        canvas.style.display = 'block';
+        video.style.display = 'none';
+        btnSnap.style.display = 'none';
+        btnRetake.style.display = 'inline-block';
+
+        // Convert canvas image to file input payload
+        canvas.toBlob(function(blob) {
+            const file = new File([blob], "foto_absent_masuk.jpg", { type: "image/jpeg" });
+            const container = new DataTransfer();
+            container.items.add(file);
+            fotoInput.files = container.files;
+            fotoPreview.src = URL.createObjectURL(file);
+            fotoPreview.style.display = 'block';
+        }, 'image/jpeg');
+    });
+
+    btnRetake.addEventListener('click', function() {
+        canvas.style.display = 'none';
+        video.style.display = 'block';
+        btnSnap.style.display = 'inline-block';
+        btnRetake.style.display = 'none';
+    });
+</script>
+{% endblock %}

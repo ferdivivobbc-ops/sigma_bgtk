@@ -1,0 +1,51 @@
+{% extends 'base.html' %}
+
+{% block title %}Data Pembimbing - SIGMA BGTK Sumbar{% endblock %}
+
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <div>
+        <h4 class="fw-bold mb-1">Data Pembimbing</h4>
+        <p class="text-muted small mb-0">Kelola akun pembimbing dan penugasan mahasiswa.</p>
+    </div>
+    <a href="{% url 'pembimbing_create' %}" class="btn btn-primary">
+        <i class="fa-solid fa-user-plus me-1"></i> Tambah Pembimbing
+    </a>
+</div>
+
+<div class="card-custom p-4">
+    <div class="table-responsive">
+        <table class="table table-hover align-middle mb-0">
+            <thead class="table-light">
+                <tr>
+                    <th>Nama</th>
+                    <th>Username</th>
+                    <th>Email</th>
+                    <th>Mahasiswa Bimbingan</th>
+                    <th class="text-end">Aksi</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for pembimbing in pembimbing_list %}
+                    <tr>
+                        <td class="fw-semibold">{{ pembimbing.get_full_name|default:pembimbing.username }}</td>
+                        <td>{{ pembimbing.username }}</td>
+                        <td>{{ pembimbing.email }}</td>
+                        <td>{{ pembimbing.bimbingan_magang_set.count }}</td>
+                        <td class="text-end">
+                            <form method="POST" action="{% url 'pembimbing_delete' pembimbing.pk %}" class="d-inline" onsubmit="return confirm('Hapus akun pembimbing ini? Penugasan mahasiswa akan menjadi belum ditetapkan.');">
+                                {% csrf_token %}
+                                <button type="submit" class="btn btn-sm btn-outline-danger" title="Hapus pembimbing" aria-label="Hapus pembimbing">
+                                    <i class="fa-solid fa-trash"></i>
+                                </button>
+                            </form>
+                        </td>
+                    </tr>
+                {% empty %}
+                    <tr><td colspan="5" class="text-center text-muted py-4">Belum ada akun pembimbing.</td></tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+{% endblock %}
